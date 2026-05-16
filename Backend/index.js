@@ -19,7 +19,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 app.use('/uploads/resumes', express.static(path.join(__dirname, 'uploads/resumes')));
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ["https://job-portal07-l6kl.vercel.app", "http://localhost:5173", "http://localhost:3000"]
+}));
 
 /* --------------------------- SEEKER ROUTES --------------------------- */
 app.post('/api/seeker/register', upload.single('resume'), async (req, res) => {
