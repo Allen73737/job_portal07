@@ -1,9 +1,9 @@
-var mongoose =require("mongoose");
-mongoose.connect("mongodb+srv://jobapp:jobapp@cluster0.yemeiyr.mongodb.net/jobdb?retryWrites=true&w=majority&appName=Cluster0")
+const mongoose = require("mongoose");
 
-.then(()=>{
-    console.log("Db connected")
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
+    console.log("DB connected");
 })
-.catch((err)=>{
-    console.log(err)
-})
+.catch((err) => {
+    console.log(err);
+});
