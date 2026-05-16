@@ -34,14 +34,14 @@ const EmployerDashboard = () => {
   // Fetch jobs and interview count, then update stats
   const loadJobsAndStats = async (email) => {
     try {
-      const jobsRes = await axios.get(`http://localhost:5000/api/jobs/employer-jobs?email=${email}`);
+      const jobsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/jobs/employer-jobs?email=${email}`);
       const jobsData = jobsRes.data;
       setJobs(jobsData);
 
       const totalApplications = jobsData.reduce((sum, j) => sum + (j.applicationsCount || 0), 0);
 
       // Fetch interview count from backend
-      const interviewRes = await axios.get(`http://localhost:5000/api/stats/interview-count?email=${email}`);
+      const interviewRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/stats/interview-count?email=${email}`);
       const interviewsScheduled = interviewRes.data.count || 0;
 
       setStats({
@@ -60,7 +60,7 @@ const EmployerDashboard = () => {
   const delJob = async (id) => {
     if (!window.confirm('Are you sure you want to delete this job posting?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/jobs/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/jobs/${id}`);
       loadJobsAndStats(employer.email);
     } catch (err) {
       console.error("Delete failed", err);

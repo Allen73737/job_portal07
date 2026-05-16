@@ -149,7 +149,7 @@ const JobPostPage = () => {
     const fetchData = async () => {
       if (isEdit) {
         try {
-          const res = await axios.get(`http://localhost:5000/api/jobs/${jobId}`);
+          const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/jobs/${jobId}`);
           let datePosted = res.data.datePosted;
           if (datePosted) {
             datePosted = new Date(datePosted).toISOString();
@@ -163,7 +163,7 @@ const JobPostPage = () => {
         let company = '';
         if (employer?.email) {
           try {
-            const res = await axios.get(`http://localhost:5000/api/employers/${employer.email}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/employers/${employer.email}`);
             company = res.data.company || '';
           } catch (err) {
             console.error("Error fetching employer:", err);
@@ -218,10 +218,10 @@ const JobPostPage = () => {
 
     try {
       if (isEdit) {
-        await axios.put(`http://localhost:5000/api/jobs/${jobId}`, form);
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/jobs/${jobId}`, form);
         setSnack({ open: true, message: 'Job updated successfully', severity: 'success' });
       } else {
-        await axios.post('http://localhost:5000/api/jobs', { ...form, postedBy: employer.email });
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/jobs`, { ...form, postedBy: employer.email });
         setSnack({ open: true, message: 'Job posted successfully', severity: 'success' });
       }
 

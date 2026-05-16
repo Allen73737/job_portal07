@@ -106,12 +106,12 @@ export default function AppliedJobs() {
       return;
     }
 
-    axios.get(`http://localhost:5000/api/applied-jobs?email=${email}`)
+    axios.get(`${import.meta.env.VITE_API_URL}/api/applied-jobs?email=${email}`)
       .then((res) => {
         const jobs = res.data;
         setJobs(jobs);
 
-        axios.get(`http://localhost:5000/api/interviews?email=${email}`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/interviews?email=${email}`)
           .then((interviewRes) => {
             const interviews = interviewRes.data;
 
@@ -148,7 +148,7 @@ export default function AppliedJobs() {
     if (!email) return alert("Not logged in");
 
     if (window.confirm("Are you sure you want to withdraw your application for this job?")) {
-      axios.delete("http://localhost:5000/api/withdraw-application", {
+      axios.delete(`${import.meta.env.VITE_API_URL}/api/withdraw-application`, {
         data: { jobId, email },
       })
         .then(() => {

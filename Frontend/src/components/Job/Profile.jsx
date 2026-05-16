@@ -13,7 +13,7 @@ export default function UserProfile() {
     const email = localStorage.getItem("email");
     if (!email) return navigate("/");
 
-    axios.get(`http://localhost:5000/api/seeker/profile?email=${email}`)
+    axios.get(`${import.meta.env.VITE_API_URL}/api/seeker/profile?email=${email}`)
       .then(res => {
         setUser(res.data);
         if (res.data.resume && res.data.resume.data) {

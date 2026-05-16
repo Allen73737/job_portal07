@@ -17,13 +17,13 @@ export default function JobSeekerDashboard() {
 
   // Fetch jobs and applied jobs
   useEffect(() => {
-    axios.get('http://localhost:5000/api/jobs')
+    axios.get(`${import.meta.env.VITE_API_URL}/api/jobs`)
       .then((res) => setJobs(res.data))
       .catch((err) => console.error(err));
 
     const userEmail = localStorage.getItem("email");
     if (userEmail) {
-      axios.get(`http://localhost:5000/api/applied-jobs?email=${userEmail}`)
+      axios.get(`${import.meta.env.VITE_API_URL}/api/applied-jobs?email=${userEmail}`)
         .then((res) => setAppliedJobIds(res.data.map(j => j._id)))
         .catch((err) => console.error(err));
     }
@@ -66,7 +66,7 @@ export default function JobSeekerDashboard() {
     const userEmail = localStorage.getItem("email");
     if (!userEmail) return alert("You must be logged in!");
 
-    axios.post("http://localhost:5000/api/apply", { jobId, userEmail })
+    axios.post(`${import.meta.env.VITE_API_URL}/api/apply`, { jobId, userEmail })
       .then(() => {
         setAppliedJobIds(prev => [...prev, jobId]);
         setSnackbar({ open: true, message: 'Successfully Applied!', severity: 'success' });

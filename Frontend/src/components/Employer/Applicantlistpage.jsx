@@ -99,8 +99,8 @@ export default function ApplicantListPage() {
   const fetchApplicants = async () => {
     try {
       const [appRes, interviewRes] = await Promise.all([
-        axios.get(`http://localhost:5000/api/applicant?jobId=${jobId}`),
-        axios.get(`http://localhost:5000/api/interviews/job/${jobId}`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/applicant?jobId=${jobId}`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/interviews/job/${jobId}`)
       ]);
       const interviewMap = {};
       interviewRes.data.forEach(int => {
@@ -130,7 +130,7 @@ export default function ApplicantListPage() {
     const applicant = interviewModal.applicant;
     setInterviewModal({ open: false, applicant: null });
     try {
-      await axios.post("http://localhost:5000/api/interviews", {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/interviews`, {
         jobId,
         seekerEmail: applicant.email,
         interviewDate: data.date,
@@ -139,7 +139,7 @@ export default function ApplicantListPage() {
         link: data.link,
         message: data.notes
       });
-      await axios.put("http://localhost:5000/api/applicant/status", {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/applicant/status`, {
         jobId,
         email: applicant.email,
         status: "interview scheduled"
@@ -156,10 +156,10 @@ export default function ApplicantListPage() {
     const { applicant } = dialog;
     closeDialog();
     try {
-      await axios.delete("http://localhost:5000/api/applicant", {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/applicant`, {
         params: { jobId, email: applicant.email }
       });
-      await axios.put("http://localhost:5000/api/applicant/status", {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/applicant/status`, {
         jobId,
         email: applicant.email,
         status: "rejected"

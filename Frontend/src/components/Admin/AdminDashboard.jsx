@@ -98,11 +98,11 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const res = await axios.get('http://localhost:5000/api/admin/users');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`);
       setUsers(res.data);
     };
     const fetchJobs = async () => {
-      const res = await axios.get('http://localhost:5000/api/jobs');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/jobs`);
       setJobs(res.data);
     };
     fetchUsers();
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
     setConfirmDialog({ open: false });
 
     if (type === 'user') {
-      await axios.delete(`http://localhost:5000/api/admin/users/${data.email}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/admin/users/${data.email}`);
       setUsers(prev => {
         const updated = prev.filter(user => user.email !== data.email);
         setUndoStack(u => [...u, { type: 'user', data }]);
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
     }
 
     if (type === 'job') {
-      await axios.delete(`http://localhost:5000/api/admin/jobs/${data._id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/admin/jobs/${data._id}`);
       setJobs(prev => {
         const updated = prev.filter(job => job._id !== data._id);
         setUndoStack(u => [...u, { type: 'job-delete', data }]);
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
 
   const handleSaveEdit = async () => {
     const original = jobs.find(j => j._id === editJob._id);
-    const res = await axios.put(`http://localhost:5000/api/jobs/${editJob._id}`, {
+    const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/jobs/${editJob._id}`, {
       title: editJob.title,
       company: editJob.company
     });

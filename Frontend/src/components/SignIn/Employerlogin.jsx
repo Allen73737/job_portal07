@@ -28,8 +28,8 @@ export default function Employer() {
   const handleSubmit = async () => {
     try {
       const url = isSignUp
-        ? 'http://localhost:5000/api/employer/register'
-        : 'http://localhost:5000/api/employer/login';
+        ? `${import.meta.env.VITE_API_URL}/api/employer/register`
+        : `${import.meta.env.VITE_API_URL}/api/employer/login`;
       const { data } = await axios.post(url, formData);
       localStorage.setItem('employer', JSON.stringify(data.employer));
       setSnackbar({ open: true, message: data.message, severity: 'success' });

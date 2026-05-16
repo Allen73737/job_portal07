@@ -21,7 +21,7 @@ export default function EditProfile() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/seeker/profile?email=${userEmail}`)
+      .get(`${import.meta.env.VITE_API_URL}/api/seeker/profile?email=${userEmail}`)
       .then((res) => {
         if (res.data) setProfile(res.data);
       })
@@ -51,7 +51,7 @@ export default function EditProfile() {
     if (resumeFile) formData.append("resume", resumeFile);
 
     try {
-      await axios.put('http://localhost:5000/api/seeker/profile', formData, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/seeker/profile`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setSnackbar({ open: true, message: 'Profile updated successfully!', severity: 'success' });

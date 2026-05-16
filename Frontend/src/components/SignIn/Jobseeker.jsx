@@ -37,7 +37,7 @@ export default function JobSeekerLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/seeker/login', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/seeker/login`, {
         email: formData.email,
         password: formData.password,
       });
@@ -83,7 +83,7 @@ export default function JobSeekerLogin() {
       form.append('password', formData.password);
       if (formData.resume) form.append('resume', formData.resume);
 
-      await axios.post('http://localhost:5000/api/seeker/register', form, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/seeker/register`, form, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       localStorage.setItem('email', formData.email);
