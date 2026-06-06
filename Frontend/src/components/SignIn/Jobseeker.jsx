@@ -43,7 +43,7 @@ export default function JobSeekerLogin() {
       });
       localStorage.setItem('email', formData.email);
       setSnackbar({ open: true, message: 'Login successful!', severity: 'success' });
-      setTimeout(() => window.location.href = '/job', 1200);
+      setTimeout(() => navigate('/job'), 1200);
     } catch (err) {
       setSnackbar({
         open: true,
@@ -90,7 +90,7 @@ export default function JobSeekerLogin() {
       setSnackbar({ open: true, message: 'Registration successful!', severity: 'success' });
       setOpenDialog(false);
       setTimeout(() => {
-        window.location.href = '/job';
+        navigate('/job');
       }, 1200);
     } catch (err) {
       setSnackbar({
