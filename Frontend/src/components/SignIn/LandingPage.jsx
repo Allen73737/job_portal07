@@ -378,7 +378,7 @@ function StackingFeatureDeck() {
           {/* Gemini AI Animated Border (Light Mode) */}
           <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,#3b82f6,#8b5cf6,#ec4899,#3b82f6)] animate-[spin_3s_linear_infinite]" />
           
-          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-blue-50/80 to-purple-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-blue-50/80 to-purple-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-lg shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
             <div className="flex-1 p-6 md:p-10 lg:p-20 flex flex-col justify-center">
               <FaBolt className="text-5xl text-blue-500 mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-6">Lightning Fast AI Matching</h2>
@@ -412,7 +412,7 @@ function StackingFeatureDeck() {
           {/* Gemini AI Animated Border (Light Mode) */}
           <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_120deg,#10b981,#3b82f6,#8b5cf6,#10b981)] animate-[spin_3s_linear_infinite]" />
 
-          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-emerald-50/80 to-teal-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-emerald-50/80 to-teal-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-lg shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
             <div className="flex-1 p-6 md:p-10 lg:p-20 flex flex-col justify-center">
               <FaShieldAlt className="text-5xl text-emerald-500 mb-6 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-6">Enterprise-Grade Security</h2>
@@ -446,7 +446,7 @@ function StackingFeatureDeck() {
           {/* Gemini AI Animated Border (Light Mode) */}
           <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_240deg,#8b5cf6,#ec4899,#3b82f6,#8b5cf6)] animate-[spin_4s_linear_infinite]" />
 
-          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-purple-50/80 to-fuchsia-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-purple-50/80 to-fuchsia-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-lg shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
             <div className="flex-1 p-6 md:p-10 lg:p-20 flex flex-col justify-center">
               <FaRocket className="text-5xl text-purple-500 mb-6 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-6">Unprecedented Career Growth</h2>
@@ -680,7 +680,7 @@ const EliteTalentEngine = () => {
         <motion.div className="absolute w-72 h-72 border border-amber-500/20 rounded-full border-t-amber-400" animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} />
         <motion.div className="absolute w-80 h-80 border-2 border-dotted border-amber-300/30 rounded-full" animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} />
         
-        <div className="relative p-10 bg-slate-900/60 backdrop-blur-3xl rounded-full border border-amber-500/40 shadow-[0_0_80px_rgba(217,119,6,0.25)]">
+        <div className="relative p-10 bg-slate-900/60 backdrop-blur-lg rounded-full border border-amber-500/40 shadow-[0_0_80px_rgba(217,119,6,0.25)]">
           <motion.div animate={{ rotateY: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} style={{ transformStyle: 'preserve-3d' }}>
             <FaGlobe className="w-20 h-20 text-amber-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" />
           </motion.div>
@@ -918,7 +918,7 @@ function HapticTestimonialCard({ testimonial }) {
         <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,#dbeafe,#3b82f6,#1e3a8a,#dbeafe)] animate-[spin_3s_linear_infinite]" />
       </div>
 
-      <div className="relative z-10 w-full h-full p-6 md:p-10 flex flex-col md:flex-row items-center gap-8 bg-white/90 dark:bg-slate-900/80 backdrop-blur-3xl rounded-[2.4rem] border border-white/80 dark:border-white/10">
+      <div className="relative z-10 w-full h-full p-6 md:p-10 flex flex-col md:flex-row items-center gap-8 bg-white/90 dark:bg-slate-900/80 backdrop-blur-lg rounded-[2.4rem] border border-white/80 dark:border-white/10">
       <img 
         src={testimonial.image} 
         alt="Profile" 
@@ -1098,18 +1098,13 @@ export default function HomePage() {
   const { ref: statsRef, inView: statsInView } = useInView({ threshold: 0.1, triggerOnce: true });
 
   const dynamicStatsRef = useRef(null);
-  const { scrollYProgress: statsScrollProgress } = useScroll({
-    target: dynamicStatsRef,
-    offset: ["start start", "end end"]
-  });
 
-  useMotionValueEvent(statsScrollProgress, "change", (latest) => {
-    let newIndex = Math.floor(latest * 3);
-    if (newIndex >= 3) newIndex = 2;
-    if (newIndex !== activeCardIndex) {
-      setActiveCardIndex(newIndex);
-    }
-  });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveCardIndex((prev) => (prev + 1) % 3);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Memoized animation variants
   const fadeInUp = useMemo(() => ({
@@ -1143,27 +1138,7 @@ export default function HomePage() {
   const carouselRotateZ = useTransform(carouselScrollY, [0, 1], ["-5deg", "0deg"]);
 
   return (
-    <motion.div className="flex flex-col font-sans transition-all duration-700 blur-0 brightness-100">
-
-
-      {/* SVG Liquid Distortion & Gooey Filter Definitions */}
-      <svg className="hidden">
-        <filter id="liquidFilter">
-          <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise" />
-          <motion.feDisplacementMap 
-            in="SourceGraphic" 
-            in2="noise" 
-            scale={liquidScale} 
-            xChannelSelector="R" 
-            yChannelSelector="G" 
-          />
-        </filter>
-        <filter id="goo">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
-          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -10" result="goo" />
-          <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-        </filter>
-      </svg>
+    <motion.div className="flex flex-col font-sans transition-all duration-700 blur-0 brightness-100 overflow-x-hidden w-full max-w-[100vw]">
 
       {/* 2. Scroll-Docking Search Bar */}
       <motion.div 
@@ -1414,9 +1389,9 @@ export default function HomePage() {
       {/* 3. Cinematic Feature Deck */}
       <StackingFeatureDeck />
 
-      {/* Dynamic Statistics Section - Scroll Locked Scrollytelling */}
-      <section ref={dynamicStatsRef} className="relative w-full" style={{ height: "300vh" }}>
-        <div className="sticky top-0 w-full h-screen overflow-hidden flex items-center justify-center py-20 px-4">
+      {/* Dynamic Statistics Section - Auto Rotating */}
+      <section ref={dynamicStatsRef} className="relative w-full py-24">
+        <div className="w-full flex items-center justify-center py-20 px-4">
           <motion.div 
             ref={statsRef}
             initial="hidden"
@@ -1460,7 +1435,7 @@ export default function HomePage() {
                     <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,#0ea5e9,#38bdf8,#818cf8,#3b82f6,#0ea5e9)] animate-[spin_2s_linear_infinite]" />
                   </div>
 
-                  <div className="relative z-10 p-10 flex flex-col items-center justify-center text-center w-full h-full rounded-[2.4rem] bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-800/80 dark:to-slate-800/40 backdrop-blur-3xl border border-white/80 dark:border-white/10">
+                  <div className="relative z-10 p-10 flex flex-col items-center justify-center text-center w-full h-full rounded-[2.4rem] bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-800/80 dark:to-slate-800/40 backdrop-blur-lg border border-white/80 dark:border-white/10">
                   <motion.div variants={fadeInUp}>
                     <div className="w-16 h-16 bg-primary-500/10 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-inner border border-primary-500/20 transition-transform duration-300">
                       <stat.icon className={`text-3xl transition-colors duration-500 ${isActive ? "text-primary-600 dark:text-primary-400 scale-110" : "text-slate-400 dark:text-slate-500"}`} />
