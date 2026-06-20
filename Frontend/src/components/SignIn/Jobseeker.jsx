@@ -100,13 +100,9 @@ export default function JobSeekerLogin() {
       localStorage.setItem('email', formData.email);
       toast.success("Registration successful");
       setOpenDialog(false);
-<<<<<<< HEAD
       setTimeout(() => {
         navigate('/job');
       }, 1200);
-=======
-      setTimeout(() => setMode('login'), 1000);
->>>>>>> 6c9e552 (feat: enhance UI, add premium README, secure credentials)
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Server rejected registration.';
       toast.error(`Registration Failed: ${errorMsg}`, {
