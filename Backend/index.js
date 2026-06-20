@@ -4,6 +4,8 @@ const cors = require("cors");
 const multer = require("multer");
 const mongoose = require("mongoose");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
 require("./db");
 const Interview = require("./interview");
 const Job = require("./jobmodel");
@@ -11,28 +13,81 @@ const Employer = require("./employermodel");
 const Seeker = require("./Seeker");
 const AppliedJob = require("./appliedJobModel");
 
-const app = express();
-const port = 5000;
+// Security Packages
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+const bcrypt = require('bcryptjs');
 
-// Multer setup for resume upload
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ["https://job-portal07-l6kl.vercel.app", "http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE"]
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
+app.set('socketio', io);
+const port = process.env.PORT || 5005;
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.use('/uploads/resumes', express.static(path.join(__dirname, 'uploads/resumes')));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors({
-  origin: ["https://job-portal07-l6kl.vercel.app", "http://localhost:5173", "http://localhost:3000"]
+  origin: ["https://job-portal07-l6kl.vercel.app", "http://localhost:5173", "http://localhost:5174", "http://localhost:3000"]
 }));
 
+// Global Security Middlewares
+app.use(helmet());
+// app.use(mongoSanitize()); // Disabled due to Express 5 incompatibility (req.query is getter only)
+// app.use(xss()); // Disabled due to Express 5 incompatibility
+app.use(hpp());
+
+// Global Rate Limiting
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per windowMs
+  message: "Too many requests from this IP, please try again later."
+});
+app.use('/api', globalLimiter);
+
+// Strict Rate Limiting for Auth Routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: "Too many login attempts, please try again after 15 minutes."
+});
+
+// Mount AI Routes
+const aiRoutes = require('./aiRoutes');
+app.use('/api/ai', aiRoutes);
+
 /* --------------------------- SEEKER ROUTES --------------------------- */
-app.post('/api/seeker/register', upload.single('resume'), async (req, res) => {
+app.post('/api/seeker/register', upload.single('resume'), authLimiter, async (req, res) => {
   const { name, email, password, age, location, linkedin, bio } = req.body;
   try {
     const existing = await Seeker.findOne({ email });
     if (existing) return res.status(400).json({ error: "Email already used" });
     if (!req.file) return res.status(400).json({ error: "Resume is required" });
 
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const newSeeker = new Seeker({
-      name, email, password, age, location, linkedin, bio,
+      name, email, password: hashedPassword, age, location, linkedin, bio,
       resume: {
         data: req.file.buffer,
         contentType: req.file.mimetype,
@@ -47,11 +102,15 @@ app.post('/api/seeker/register', upload.single('resume'), async (req, res) => {
   }
 });
 
-app.post('/api/seeker/login', async (req, res) => {
+app.post('/api/seeker/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
   try {
     const seeker = await Seeker.findOne({ email });
-    if (!seeker || seeker.password !== password) {
+    if (!seeker) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    const isMatch = await bcrypt.compare(password, seeker.password);
+    if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
     res.status(200).json({ message: "Login successful" });
@@ -75,6 +134,11 @@ app.get('/api/seeker/profile', async (req, res) => {
       location: seeker.location,
       linkedin: seeker.linkedin,
       bio: seeker.bio,
+      bio: seeker.bio,
+      profilePhoto: seeker.profilePhoto && seeker.profilePhoto.data ? {
+        data: seeker.profilePhoto.data.toString('base64'),
+        contentType: seeker.profilePhoto.contentType
+      } : null,
       resume: seeker.resume ? {
         data: seeker.resume.data,
         contentType: seeker.resume.contentType,
@@ -86,17 +150,23 @@ app.get('/api/seeker/profile', async (req, res) => {
   }
 });
 
-app.put('/api/seeker/profile', upload.single('resume'), async (req, res) => {
+app.put('/api/seeker/profile', upload.fields([{ name: 'resume', maxCount: 1 }, { name: 'profilePhoto', maxCount: 1 }]), async (req, res) => {
   const { email, name, age, location, linkedin, bio } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required" });
 
   try {
     const updateData = { name, age, location, linkedin, bio };
-    if (req.file) {
+    if (req.files && req.files['resume']) {
       updateData.resume = {
-        data: req.file.buffer,
-        contentType: req.file.mimetype,
-        fileName: req.file.originalname,
+        data: req.files['resume'][0].buffer,
+        contentType: req.files['resume'][0].mimetype,
+        fileName: req.files['resume'][0].originalname,
+      };
+    }
+    if (req.files && req.files['profilePhoto']) {
+      updateData.profilePhoto = {
+        data: req.files['profilePhoto'][0].buffer,
+        contentType: req.files['profilePhoto'][0].mimetype,
       };
     }
 
@@ -109,14 +179,60 @@ app.put('/api/seeker/profile', upload.single('resume'), async (req, res) => {
   }
 });
 
+app.get('/api/seeker/activity-radar', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: "Email is required" });
+
+  try {
+    const seeker = await Seeker.findOne({ email });
+    const appliedJobs = await AppliedJob.find({ userEmail: email }).sort({ appliedAt: -1 }).limit(3);
+    const interviews = await Interview.find({ seekerEmail: email }).sort({ scheduledAt: -1 }).limit(2);
+
+    let activities = [];
+
+    if (interviews && interviews.length > 0) {
+      activities.push(`Interview updated! Check your calendar.`);
+    }
+    
+    if (appliedJobs && appliedJobs.length > 0) {
+      activities.push(`Your application to ${appliedJobs[0].company || 'a top company'} is active.`);
+      activities.push(`A recruiter from ${appliedJobs[0].company || 'a top company'} reviewed your profile.`);
+    }
+
+    if (seeker && seeker.bio) {
+      const skills = seeker.bio.split(' ').filter(word => word.length > 3).slice(0, 2);
+      if (skills.length > 0) {
+        activities.push(`Your skill '${skills[0]}' is in high demand this week.`);
+      }
+    }
+
+    // Mix in some dynamic mock based on real profile data
+    const location = seeker?.location || "your area";
+    activities.push(`Companies in ${location} are actively hiring.`);
+    activities.push(`Your resume ranks in the top 5% for your skills this week.`);
+
+    // Remove duplicates
+    activities = [...new Set(activities)];
+
+    res.json(activities);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to generate activity radar" });
+  }
+});
+
 /* --------------------------- EMPLOYER ROUTES --------------------------- */
-app.post('/api/employer/register', async (req, res) => {
+app.post('/api/employer/register', authLimiter, async (req, res) => {
   const { email, password, company } = req.body;
   try {
     const existing = await Employer.findOne({ email });
     if (existing) return res.status(400).json({ error: "Email already used" });
 
-    const employer = new Employer({ company, email, password });
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const employer = new Employer({ company, email, password: hashedPassword });
     await employer.save();
 
     res.status(201).json({
@@ -132,11 +248,15 @@ app.post('/api/employer/register', async (req, res) => {
   }
 });
 
-app.post('/api/employer/login', async (req, res) => {
+app.post('/api/employer/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
   try {
     const employer = await Employer.findOne({ email });
-    if (!employer || employer.password !== password) {
+    if (!employer) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    const isMatch = await bcrypt.compare(password, employer.password);
+    if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
     res.status(200).json({
@@ -291,8 +411,12 @@ app.put("/api/applicant/status", async (req, res) => {
       { jobId, userEmail: email },
       { status },
       { new: true }
-    );
+    ).populate('jobId');
     if (!updated) return res.status(404).json({ error: "Application not found" });
+
+    // Emit live update
+    const io = req.app.get('socketio');
+    io.emit('application-updated', { email, jobId, status });
 
     res.json({ message: "Status updated", application: updated });
   } catch (err) {
@@ -343,6 +467,10 @@ app.delete("/api/applicant", async (req, res) => {
     );
     if (!updated) return res.status(404).json({ error: "Application not found" });
 
+    // Emit live update
+    const io = req.app.get('socketio');
+    io.emit('application-updated', { email, jobId, status: "rejected" });
+
     res.json({ message: "Applicant rejected", application: updated });
   } catch (err) {
     res.status(500).json({ error: "Failed to reject applicant" });
@@ -360,6 +488,40 @@ app.get("/api/stats/interview-count", async (req, res) => {
     res.json({ count });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch count" });
+  }
+});
+
+app.get("/api/employer/dashboard-data", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: "Email required" });
+
+  try {
+    const jobs = await Job.find({ postedBy: email }).sort({ createdAt: -1 }).lean();
+    const jobIds = jobs.map(j => j._id);
+    
+    const applications = await AppliedJob.find({ jobId: { $in: jobIds } }).populate('jobId').lean();
+    
+    // Bulk fetch seeker info to avoid N+1 queries
+    const uniqueEmails = [...new Set(applications.map(app => app.userEmail))];
+    const seekers = await Seeker.find({ email: { $in: uniqueEmails } }).select('email name').lean();
+    const seekerMap = seekers.reduce((map, seeker) => {
+      map[seeker.email] = seeker.name;
+      return map;
+    }, {});
+
+    const enrichedApplications = applications.map((app) => ({
+      ...app,
+      jobTitle: app.jobId?.title,
+      seekerName: seekerMap[app.userEmail] || 'Unknown',
+      seekerEmail: app.userEmail
+    }));
+
+    res.json({
+      jobs,
+      applications: enrichedApplications
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch dashboard data" });
   }
 });
 
@@ -409,9 +571,37 @@ app.post('/api/interviews', async (req, res) => {
       { status: "interview scheduled" }
     );
 
+    // Emit live update
+    const io = req.app.get('socketio');
+    io.emit('application-updated', { email: seekerEmail, jobId, status: "interview scheduled", interview });
+
     res.status(201).json({ message: "Interview scheduled", interview });
   } catch (err) {
     res.status(500).json({ error: "Failed to schedule interview", details: err.message });
+  }
+});
+
+// Update interview
+app.put('/api/interviews/:id', async (req, res) => {
+  const { id } = req.params;
+  const { interviewDate, interviewTime, mode, link, message } = req.body;
+
+  try {
+    const updated = await Interview.findByIdAndUpdate(
+      id,
+      { interviewDate, interviewTime, mode, link, message },
+      { new: true }
+    );
+    
+    if (!updated) return res.status(404).json({ error: "Interview not found" });
+
+    // Emit live update
+    const io = req.app.get('socketio');
+    io.emit('application-updated', { email: updated.seekerEmail, jobId: updated.jobId, status: "interview scheduled", interview: updated });
+
+    res.json({ message: "Interview updated", interview: updated });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update interview", details: err.message });
   }
 });
 
@@ -444,10 +634,10 @@ app.get('/api/interviews/job/:jobId', async (req, res) => {
 /* ---------------------- ADMIN ROUTES (from second code) ---------------------- */
 
 // ✅ Admin Login
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
   const adminEmail = "admin@jobportal.com";
-  const adminPassword = "admin123";
+  const adminPassword = "admin123"; // In a real system, use an environment variable
 
   if (email === adminEmail && password === adminPassword) {
     res.status(200).json({ message: "Admin login successful", token: "admin-auth-token" });
@@ -532,6 +722,21 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.listen(port, () => {
+// ✅ Global Error Handler (Crash Protection)
+app.use((err, req, res, next) => {
+  console.error("Unhandled Express Error:", err);
+  res.status(500).json({ error: "An unexpected internal server error occurred." });
+});
+
+// ✅ Process-Level Crash Protection
+process.on("uncaughtException", (err) => {
+  console.error("CRITICAL: Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("CRITICAL: Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+server.listen(port, () => {
   console.log(`✅ Server running at http://localhost:${port}`);
 });

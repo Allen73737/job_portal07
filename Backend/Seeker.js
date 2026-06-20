@@ -13,7 +13,17 @@ const seekerSchema = new mongoose.Schema({
     data: Buffer,
     contentType: String,
     fileName: String
-  }
+  },
+  profilePhoto: {
+    data: Buffer,
+    contentType: String
+  },
+  aiMatches: [{
+    jobId: { type: mongoose.Schema.Types.ObjectId, ref: 'Job' },
+    score: Number,
+    reason: String,
+    lastEvaluated: { type: Date, default: Date.now }
+  }]
 });
 
 module.exports = mongoose.model('Seeker', seekerSchema);

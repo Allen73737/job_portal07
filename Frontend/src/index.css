@@ -1,66 +1,172 @@
 @import "tailwindcss";
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@custom-variant dark (&:where(.dark, .dark *));
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+  --color-dark-bg: #0f172a;
+  --color-dark-surface: #1e293b;
+  --color-dark-border: #334155;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color-scheme: light dark;
   }
-  a:hover {
-    color: #747bff;
+  
+  html {
+    scroll-behavior: smooth;
   }
-  button {
-    background-color: #f9f9f9;
+
+  body {
+    @apply bg-[#f0f4f8] text-slate-900 antialiased font-sans transition-colors duration-300;
+  }
+
+  .dark body {
+    @apply bg-dark-bg text-slate-100;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  /* GPU acceleration hints for glassmorphism elements */
+  .glass-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Light mode ambient dot-grid pattern */
+  .light-dot-grid {
+    background-image: radial-gradient(circle, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Light mode subtle mesh gradient background */
+  .light-mesh-bg {
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(59, 130, 246, 0.08), transparent),
+      radial-gradient(ellipse 60% 80% at 90% 80%, rgba(139, 92, 246, 0.06), transparent),
+      radial-gradient(ellipse 50% 50% at 50% 50%, rgba(14, 165, 233, 0.04), transparent);
+  }
+
+
+  /* Fix Webkit/Chrome Ugly Autofill Background */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active,
+  input:-internal-autofill-selected,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active {
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: inherit !important;
+    transition: background-color 9999s ease-in-out 0s !important;
+    box-shadow: inset 0 0 20px 20px transparent !important;
+  }
+
+  /* Interactive Spotlight Text Selection */
+  ::selection {
+    background: rgba(59, 130, 246, 0.4);
+    color: white;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  
+  .dark ::selection {
+    background: rgba(59, 130, 246, 0.6);
+    color: white;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+
+  /* Dynamic Glassmorphic Scrollbar */
+  ::-webkit-scrollbar {
+    width: 12px;
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(226, 232, 240, 0.3);
+    border-radius: 10px;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.8);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(51, 65, 85, 0.5);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.8);
+  }
+}
+
+/* Premium utility classes */
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl;
+  }
+  .dark .glass-panel {
+    @apply bg-dark-surface/70 border-white/10 shadow-black/50;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-3xl;
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .glass-card:hover {
+    box-shadow: 0 16px 48px rgba(59, 130, 246, 0.1), 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+  .dark .glass-card {
+    @apply bg-dark-surface/80 border-slate-700/50 shadow-black/30 hover:shadow-black/50;
+  }
+  
+  .premium-button-primary {
+    @apply bg-primary-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-primary-600/30 transition-all duration-300 transform active:scale-95;
+  }
+  .premium-button-primary:hover {
+    @apply bg-primary-500 -translate-y-1 scale-105 shadow-2xl shadow-primary-600/50 brightness-110;
+  }
+  
+  .premium-button-outline {
+    @apply bg-white text-slate-800 font-bold px-6 py-3 rounded-2xl shadow-sm border border-slate-200 transition-all duration-300 transform active:scale-95;
+  }
+  .premium-button-outline:hover {
+    @apply bg-slate-50 -translate-y-1 scale-105 shadow-xl border-slate-300;
+  }
+  .dark .premium-button-outline {
+    @apply bg-dark-surface text-slate-100 border-slate-700;
+  }
+  .dark .premium-button-outline:hover {
+    @apply bg-slate-800 border-primary-500 shadow-xl shadow-primary-500/20 brightness-110;
   }
 }
