@@ -13,52 +13,7 @@ import AIHeadhunter from "./components/Job/AIHeadhunter";
 import JobSeekerMenu from "./components/Job/JobSeekerMenu";
 import EmployerMenu from "./components/Employer/EmployerMenu";
 
-// 5. Premium Magnetic Cursor Tooltips
-const MagneticTooltip = memo(function MagneticTooltip() {
-  const [tooltip, setTooltip] = useState({ text: '', visible: false, x: 0, y: 0 });
-
-  useEffect(() => {
-    let rafId = null;
-    const handleMouseMove = (e) => {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => {
-        const target = e.target.closest('[data-tooltip]');
-        if (target) {
-          setTooltip({
-            text: target.getAttribute('data-tooltip'),
-            visible: true,
-            x: e.clientX,
-            y: e.clientY
-          });
-        } else {
-          setTooltip(prev => prev.visible ? { ...prev, visible: false } : prev);
-        }
-        rafId = null;
-      });
-    };
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => { window.removeEventListener('mousemove', handleMouseMove); if (rafId) cancelAnimationFrame(rafId); };
-  }, []);
-
-  return (
-    <AnimatePresence>
-      {tooltip.visible && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1, x: tooltip.x + 15, y: tooltip.y + 15 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.5 }}
-          className="fixed top-0 left-0 z-[99999] pointer-events-none px-4 py-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-3xl border border-primary-500/20 shadow-[0_15px_40px_rgba(37,99,235,0.2)] rounded-2xl font-bold tracking-wide text-sm text-primary-600 dark:text-primary-400"
-          style={{ willChange: 'transform, opacity' }}
-        >
-          {tooltip.text}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-});
-
-
+// Tooltip removed for performance.
 // 3. Magnetic Physics Navigation Links
 const springConfig = { type: "spring", stiffness: 150, damping: 15, mass: 0.1 };
 const MagneticLink = memo(function MagneticLink({ children, to, className, onClick }) {
@@ -359,10 +314,8 @@ export default function GlobalLayout({ children }) {
         
         <ScrollProgress />
         <Toast message={toastMsg} isVisible={!!toastMsg} />
-        <MagneticTooltip />
         
-        {/* 1. Cinematic Film Grain Overlay - GPU accelerated */}
-        <div className="fixed inset-0 z-[100] pointer-events-none opacity-[0.03] dark:opacity-[0.05] mix-blend-overlay" style={{ willChange: 'transform', transform: 'translateZ(0)', backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`, backgroundSize: '256px 256px' }}></div>
+        {/* 1. Cinematic Film Grain Overlay (Removed for Performance) */}
 
         {/* Light Mode Ambient Gradient Orbs */}
         {mode === 'light' && (

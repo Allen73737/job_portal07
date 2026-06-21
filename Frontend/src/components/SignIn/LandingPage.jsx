@@ -65,7 +65,6 @@ const MagneticJellyButton = memo(function MagneticJellyButton({ children, classN
       }}
       whileTap={{ scale: 0.9, borderRadius: "2rem" }}
       transition={jellySpring}
-      style={{ willChange: 'transform' }}
     >
       <motion.div
         animate={{ x: position.x * 0.2, y: position.y * 0.2 }}
@@ -92,13 +91,17 @@ function AnimatedBorderButton({ children, className, onMouseEnter, onMouseLeave 
 }
 
 function SpotlightCard({ children, className }) {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
   const [opacity, setOpacity] = useState(0);
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
   };
+  
+  const background = useMotionTemplate`radial-gradient(400px circle at ${mouseX}px ${mouseY}px, rgba(37, 99, 235, 0.15), transparent 40%)`;
 
   return (
     <div
@@ -107,11 +110,11 @@ function SpotlightCard({ children, className }) {
       onMouseEnter={() => setOpacity(1)}
       onMouseLeave={() => setOpacity(0)}
     >
-      <div
+      <motion.div
         className="pointer-events-none absolute -inset-px opacity-0 transition duration-500 z-50"
         style={{
           opacity,
-          background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, rgba(37, 99, 235, 0.15), transparent 40%)`,
+          background,
         }}
       />
       {children}
@@ -122,17 +125,18 @@ function SpotlightCard({ children, className }) {
 
 // 10. Ultimate Premium CTA Button
 function UltimatePremiumCTA({ text, to, icon: Icon, primary = false }) {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
   const buttonRef = useRef(null);
 
   const handleMouseMove = (e) => {
     if (!buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
   };
+  
+  const background = useMotionTemplate`radial-gradient(150px circle at ${mouseX}px ${mouseY}px, ${primary ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.4)'}, transparent 100%)`;
 
   return (
     <Link to={to} className="w-full sm:w-auto relative group block">
@@ -147,8 +151,8 @@ function UltimatePremiumCTA({ text, to, icon: Icon, primary = false }) {
         onMouseMove={handleMouseMove}
         className={`relative p-[3px] rounded-full overflow-hidden transition-transform duration-300 hover:scale-[1.04] shadow-2xl ${primary ? 'shadow-blue-500/50' : 'shadow-slate-500/20'}`}
       >
-        {/* Spinning Conic Gradient for the Border */}
-        <div className={`absolute inset-[-1000%] animate-[spin_3s_linear_infinite] ${primary ? 'bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#3b82f6_20%,#8b5cf6_50%,#10b981_80%,#000_100%)] dark:bg-[conic-gradient(from_90deg_at_50%_50%,transparent_0%,#3b82f6_20%,#8b5cf6_50%,#10b981_80%,transparent_100%)]' : 'bg-[conic-gradient(from_90deg_at_50%_50%,transparent_0%,#94a3b8_50%,transparent_100%)]'} opacity-100 transition-opacity`} />
+        {/* Static Optimized Gradient for the Border */}
+        <div className={`absolute inset-0 ${primary ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} />
         
         {/* Button Core */}
         <div className="relative w-full h-full bg-slate-50 dark:bg-slate-900 rounded-[calc(9999px-3px)] px-10 py-5 flex items-center justify-center gap-3 overflow-hidden border border-white/20 dark:border-white/5">
@@ -157,7 +161,7 @@ function UltimatePremiumCTA({ text, to, icon: Icon, primary = false }) {
           <motion.div
             className="pointer-events-none absolute -inset-px rounded-full opacity-0 group-hover:opacity-100 transition duration-300 mix-blend-overlay"
             style={{
-              background: `radial-gradient(150px circle at ${mousePosition.x}px ${mousePosition.y}px, ${primary ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.4)'}, transparent 100%)`,
+              background,
             }}
           />
           
@@ -176,7 +180,8 @@ function UltimatePremiumCTA({ text, to, icon: Icon, primary = false }) {
 
 // 10.5 Ultimate Premium Search Bar
 function UltimatePremiumSearchBar({ placeholder, buttonText, primary = true, className = "" }) {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
   const [query, setQuery] = useState("");
   const searchRef = useRef(null);
   const navigate = useNavigate();
@@ -184,11 +189,11 @@ function UltimatePremiumSearchBar({ placeholder, buttonText, primary = true, cla
   const handleMouseMove = (e) => {
     if (!searchRef.current) return;
     const rect = searchRef.current.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
   };
+  
+  const background = useMotionTemplate`radial-gradient(200px circle at ${mouseX}px ${mouseY}px, ${primary ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.4)'}, transparent 100%)`;
 
   const handleSearch = () => {
     if (query.trim()) {
@@ -217,8 +222,8 @@ function UltimatePremiumSearchBar({ placeholder, buttonText, primary = true, cla
         onMouseMove={handleMouseMove}
         className={`relative p-[3px] rounded-full overflow-hidden transition-transform duration-300 shadow-2xl ${primary ? 'shadow-blue-500/50' : 'shadow-slate-500/20'}`}
       >
-        {/* Spinning Conic Gradient for the Border */}
-        <div className={`absolute inset-[-1000%] animate-[spin_3s_linear_infinite] ${primary ? 'bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#3b82f6_20%,#8b5cf6_50%,#10b981_80%,#000_100%)] dark:bg-[conic-gradient(from_90deg_at_50%_50%,transparent_0%,#3b82f6_20%,#8b5cf6_50%,#10b981_80%,transparent_100%)]' : 'bg-[conic-gradient(from_90deg_at_50%_50%,transparent_0%,#94a3b8_50%,transparent_100%)]'} opacity-100 transition-opacity pointer-events-none`} />
+        {/* Static Optimized Gradient for the Border */}
+        <div className={`absolute inset-0 ${primary ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500' : 'bg-slate-300 dark:bg-slate-700'} pointer-events-none`} />
         
         {/* Search Bar Core */}
         <div className="relative w-full h-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-[calc(9999px-3px)] p-2 flex items-center overflow-hidden border border-white/20 dark:border-white/5 pointer-events-auto">
@@ -227,7 +232,7 @@ function UltimatePremiumSearchBar({ placeholder, buttonText, primary = true, cla
           <motion.div
             className="pointer-events-none absolute -inset-px rounded-full opacity-0 group-hover:opacity-100 transition duration-300 mix-blend-overlay"
             style={{
-              background: `radial-gradient(200px circle at ${mousePosition.x}px ${mousePosition.y}px, ${primary ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.4)'}, transparent 100%)`,
+              background,
             }}
           />
           
@@ -260,35 +265,39 @@ function UltimatePremiumSearchBar({ placeholder, buttonText, primary = true, cla
 
 
 // 11. Shatter Text Components
-function ShatterChar({ char, scrollYProgress }) {
-  const randomX = useMemo(() => {
-    const dir = Math.random() > 0.5 ? 1 : -1;
-    return (Math.random() * 800 + 200) * dir;
-  }, []);
-  const randomY = useMemo(() => (Math.random() * -1000) - 200, []);
-  const randomRotate = useMemo(() => (Math.random() * 1440) - 720, []);
+function ShatterChar({ char }) {
+  const randomX = useMemo(() => (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 400 + 100), []);
+  const randomY = useMemo(() => (Math.random() * -400) - 100, []);
+  const randomRotate = useMemo(() => (Math.random() * 360) - 180, []);
   const randomScale = useMemo(() => Math.random() * 1.5 + 0.2, []);
-  
-  const x = useTransform(scrollYProgress, [0.02, 0.15], [0, randomX]);
-  const y = useTransform(scrollYProgress, [0.02, 0.15], [0, randomY]);
-  const rotateZ = useTransform(scrollYProgress, [0.02, 0.15], [0, randomRotate]);
-  const opacity = useTransform(scrollYProgress, [0.08, 0.15], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0.02, 0.15], [1, randomScale]);
+
+  const variants = {
+    hidden: { opacity: 0, x: randomX, y: randomY, rotateZ: randomRotate, scale: randomScale },
+    visible: { opacity: 1, x: 0, y: 0, rotateZ: 0, scale: 1, transition: { type: "spring", damping: 12, stiffness: 100 } }
+  };
 
   return (
-    <motion.span style={{ x, y, rotateZ, opacity, scale, display: 'inline-block', whiteSpace: 'pre', willChange: 'transform, opacity' }}>
+    <motion.span variants={variants} style={{ display: 'inline-block', whiteSpace: 'pre' }}>
       {char}
     </motion.span>
   );
 }
 
-function ShatterText({ text, scrollYProgress, className }) {
+function ShatterText({ text, className }) {
   return (
-    <span className={className}>
+    <motion.span 
+      className={className}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={{
+        visible: { transition: { staggerChildren: 0.02 } }
+      }}
+    >
       {text.split("").map((char, i) => (
-        <ShatterChar key={i} char={char} scrollYProgress={scrollYProgress} />
+        <ShatterChar key={i} char={char} />
       ))}
-    </span>
+    </motion.span>
   );
 }
 
@@ -368,38 +377,29 @@ function StackingFeatureDeck() {
   );
 
   return (
-    <div id="features" ref={containerRef} className="relative w-full z-[60]" style={{ height: "800vh" }}>
-      <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden px-4 md:px-8 perspective-[2000px] max-md:pt-20">
+    <div id="features" ref={containerRef} className="relative w-full z-[60]" style={{ height: "400vh" }}>
+      <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden px-4 md:px-8 max-md:pt-20">
         {/* Card 1 */}
         <motion.div 
           style={{ x: c1X, y: c1Y, scale: c1Scale, rotateZ: c1Rotate }}
-          className="absolute w-[90vw] xl:w-[75vw] max-w-[90vw] xl:max-w-[75vw] h-[65vh] md:h-[55vh] rounded-[3rem] p-[2px] shadow-2xl origin-center overflow-hidden"
+          className="absolute w-[90vw] xl:w-[75vw] max-w-[90vw] xl:max-w-[75vw] h-[65vh] md:h-[55vh] rounded-[3rem] p-[2px] origin-center overflow-hidden will-change-transform transform-gpu drop-shadow-xl"
         >
-          {/* Gemini AI Animated Border (Light Mode) */}
-          <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,#3b82f6,#8b5cf6,#ec4899,#3b82f6)] animate-[spin_3s_linear_infinite]" />
+          {/* Static Optimized Border */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500" />
           
-          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-blue-50/80 to-purple-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-lg shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-blue-50/80 to-purple-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
             <div className="flex-1 p-6 md:p-10 lg:p-20 flex flex-col justify-center">
               <FaBolt className="text-5xl text-blue-500 mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-6">Lightning Fast AI Matching</h2>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-medium">Our proprietary matching engine processes over 10M datapoints instantly to find your perfect fit in milliseconds, not weeks.</p>
             </div>
             <div className="flex-1 relative overflow-hidden flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/20">
-               <motion.div 
-                 animate={{ rotate: 360, scale: [1, 1.2, 1] }} 
-                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                 className="absolute w-64 h-64 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 blur-3xl opacity-100 mix-blend-screen dark:mix-blend-lighten"
-               />
-               <motion.div 
-                 animate={{ rotateY: 360, rotateX: 360 }}
-                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                 className="w-48 h-48 border-[3px] border-blue-500 flex items-center justify-center relative shadow-[0_0_30px_rgba(59,130,246,0.8)]"
-                 style={{ transformStyle: "preserve-3d" }}
-               >
-                  <div className="absolute w-full h-full border-[3px] border-cyan-400 rounded-full shadow-[0_0_20px_rgba(34,211,238,0.8)]" style={{ transform: "rotateX(90deg)" }} />
-                  <div className="absolute w-full h-full border-[3px] border-cyan-400 rounded-full shadow-[0_0_20px_rgba(34,211,238,0.8)]" style={{ transform: "rotateY(90deg)" }} />
-                  <div className="absolute w-24 h-24 bg-blue-400/90 rounded-full blur-xl" />
-               </motion.div>
+               <div className="absolute w-64 h-64 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.5)_0%,transparent_70%)]" />
+               <div className="w-48 h-48 border-[2px] border-blue-400/50 rounded-full flex items-center justify-center relative shadow-[0_0_30px_rgba(59,130,246,0.4)]">
+                  <div className="absolute w-full h-full border-[2px] border-cyan-400/50 rounded-full shadow-[0_0_20px_rgba(34,211,238,0.4)]" />
+                  <div className="absolute w-full h-full border-[2px] border-cyan-400/30 rounded-full scale-110" />
+                  <div className="absolute w-24 h-24 bg-[radial-gradient(circle,rgba(96,165,250,0.8)_0%,transparent_70%)] rounded-full" />
+               </div>
             </div>
           </div>
         </motion.div>
@@ -407,33 +407,23 @@ function StackingFeatureDeck() {
         {/* Card 2 */}
         <motion.div 
           style={{ x: c2X, y: c2Y, scale: c2Scale, rotateZ: c2Rotate }}
-          className="absolute w-[90vw] xl:w-[75vw] max-w-[90vw] xl:max-w-[75vw] h-[65vh] md:h-[55vh] rounded-[3rem] p-[2px] shadow-2xl origin-center overflow-hidden"
+          className="absolute w-[90vw] xl:w-[75vw] max-w-[90vw] xl:max-w-[75vw] h-[65vh] md:h-[55vh] rounded-[3rem] p-[2px] origin-center overflow-hidden will-change-transform transform-gpu drop-shadow-xl"
         >
-          {/* Gemini AI Animated Border (Light Mode) */}
-          <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_120deg,#10b981,#3b82f6,#8b5cf6,#10b981)] animate-[spin_3s_linear_infinite]" />
+          {/* Static Optimized Border */}
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500" />
 
-          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-emerald-50/80 to-teal-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-lg shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-emerald-50/80 to-teal-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
             <div className="flex-1 p-6 md:p-10 lg:p-20 flex flex-col justify-center">
               <FaShieldAlt className="text-5xl text-emerald-500 mb-6 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-6">Enterprise-Grade Security</h2>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-medium">Your personal data is heavily encrypted and protected with AES-256 military-grade security. You control exactly who sees your profile.</p>
             </div>
             <div className="flex-1 relative overflow-hidden flex items-center justify-center bg-emerald-500/10 dark:bg-emerald-500/20">
-               <motion.div 
-                 animate={{ rotate: 360, scale: [1, 1.2, 1] }} 
-                 transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                 className="absolute w-64 h-64 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 blur-3xl opacity-100 mix-blend-screen dark:mix-blend-lighten"
-               />
-               <motion.div 
-                 animate={{ rotateX: [0, 180, 360], rotateY: [0, 360] }} 
-                 transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                 className="w-48 h-48 border-[4px] border-emerald-500 rounded-2xl flex items-center justify-center relative shadow-[0_0_30px_rgba(16,185,129,0.8)]"
-                 style={{ transformStyle: "preserve-3d" }}
-               >
-                 <div className="absolute w-32 h-32 border-[4px] border-teal-400 rounded-2xl shadow-[0_0_20px_rgba(45,212,191,0.8)]" style={{ transform: "translateZ(50px)" }} />
-                 <div className="absolute w-32 h-32 border-[4px] border-teal-400 rounded-2xl shadow-[0_0_20px_rgba(45,212,191,0.8)]" style={{ transform: "translateZ(-50px)" }} />
-                 <div className="absolute w-24 h-24 bg-emerald-400/90 rounded-full blur-xl" />
-               </motion.div>
+               <div className="absolute w-64 h-64 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.5)_0%,transparent_70%)]" />
+               <div className="w-48 h-48 border-[2px] border-emerald-400/50 rounded-2xl flex items-center justify-center relative shadow-[0_0_30px_rgba(16,185,129,0.4)]">
+                 <div className="absolute w-32 h-32 border-[2px] border-teal-400/50 rounded-xl shadow-[0_0_20px_rgba(45,212,191,0.4)]" />
+                 <div className="absolute w-24 h-24 bg-[radial-gradient(circle,rgba(52,211,153,0.8)_0%,transparent_70%)] rounded-full" />
+               </div>
             </div>
           </div>
         </motion.div>
@@ -441,12 +431,12 @@ function StackingFeatureDeck() {
         {/* Card 3 */}
         <motion.div 
           style={{ y: c3Y, rotateZ: c3Rotate }}
-          className="absolute w-[90vw] xl:w-[75vw] max-w-[90vw] xl:max-w-[75vw] h-[65vh] md:h-[55vh] rounded-[3rem] p-[2px] shadow-2xl origin-center overflow-hidden"
+          className="absolute w-[90vw] xl:w-[75vw] max-w-[90vw] xl:max-w-[75vw] h-[65vh] md:h-[55vh] rounded-[3rem] p-[2px] origin-center overflow-hidden will-change-transform transform-gpu drop-shadow-xl"
         >
-          {/* Gemini AI Animated Border (Light Mode) */}
-          <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_240deg,#8b5cf6,#ec4899,#3b82f6,#8b5cf6)] animate-[spin_4s_linear_infinite]" />
+          {/* Static Optimized Border */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-fuchsia-500" />
 
-          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-purple-50/80 to-fuchsia-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 backdrop-blur-lg shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+          <div className="relative z-10 w-full h-full rounded-[2.9rem] bg-gradient-to-br from-white/95 via-purple-50/80 to-fuchsia-50/50 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-900/40 overflow-hidden flex flex-col md:flex-row border border-white/80 dark:border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
             <div className="flex-1 p-6 md:p-10 lg:p-20 flex flex-col justify-center">
               <FaRocket className="text-5xl text-purple-500 mb-6 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-6">Unprecedented Career Growth</h2>
@@ -455,11 +445,10 @@ function StackingFeatureDeck() {
             <div className="flex-1 relative overflow-hidden flex items-end justify-center pb-20 bg-purple-500/5 dark:bg-purple-500/10 gap-6">
                <div className="absolute inset-0 bg-gradient-to-t from-purple-500/10 to-transparent" />
                {[40, 70, 100].map((height, i) => (
-                 <motion.div 
+                 <div 
                    key={i}
-                   animate={{ height: [`${height}%`, `${height + 20}%`, `${height}%`] }} 
-                   transition={{ duration: 3, repeat: Infinity, delay: i * 0.5, ease: "easeInOut" }}
                    className="w-16 bg-gradient-to-t from-purple-600 to-fuchsia-400 rounded-t-2xl shadow-[0_0_30px_rgba(168,85,247,0.4)] relative z-10"
+                   style={{ height: `${height}%` }}
                  />
                ))}
             </div>
@@ -480,7 +469,8 @@ function PathCard({
   ctaType,
   badges
 }) {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
 
@@ -489,7 +479,8 @@ function PathCard({
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePosition({ x, y });
+    mouseX.set(x);
+    mouseY.set(y);
   };
 
   return (
@@ -510,8 +501,10 @@ function PathCard({
       <motion.div
         animate={{
           scale: isHovered ? 1.05 : 1.15,
-          x: mousePosition.x * -30,
-          y: mousePosition.y * -30,
+        }}
+        style={{
+          x: useTransform(mouseX, x => x * -30),
+          y: useTransform(mouseY, y => y * -30),
         }}
         transition={{ type: "spring", stiffness: 60, damping: 20 }}
         className="absolute inset-0 z-0 origin-center"
@@ -548,11 +541,12 @@ function PathCard({
           key={i}
           animate={{
             y: isHovered ? [0, -10, 0] : 0,
-            x: mousePosition.x * badge.parallax,
+          }}
+          style={{
+            x: useTransform(mouseX, x => x * badge.parallax),
           }}
           transition={{
             y: { duration: 3 + i, repeat: Infinity, ease: "easeInOut" },
-            x: { type: "spring", stiffness: 50, damping: 10 }
           }}
           className={`absolute z-10 glass-card px-4 py-3 rounded-2xl flex items-center space-x-3 shadow-xl backdrop-blur-md bg-white/10 dark:bg-black/20 border border-white/10 ${badge.position}`}
           style={{ opacity: isHovered ? 1 : 0, transition: 'opacity 0.5s ease-in-out' }}
@@ -626,14 +620,14 @@ const NetworkingCinematicEngine = () => {
     <div className="absolute inset-0 z-0 bg-[#020617] overflow-hidden flex items-center justify-center">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.1)_0%,transparent_70%)]" />
       
-      {/* Central AI matching core */}
-      <motion.div className="absolute z-20" animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+      {/* Central AI matching core (Static Optimized) */}
+      <div className="absolute z-20">
         <div className="w-32 h-32 rounded-full bg-cyan-900/40 backdrop-blur-xl border border-cyan-400/30 flex items-center justify-center shadow-[0_0_50px_rgba(34,211,238,0.2)]">
           <FaMicrochip className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
         </div>
-      </motion.div>
+      </div>
 
-      {/* Matching Streams: Users (Left) -> Core -> Employers (Right) */}
+      {/* Matching Streams (Static Optimized) */}
       <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
         <defs>
           <linearGradient id="match-stream-left" x1="0%" y1="50%" x2="100%" y2="50%">
@@ -648,21 +642,21 @@ const NetworkingCinematicEngine = () => {
         
         {/* Streams from Seekers to Core */}
         {[25, 40, 60, 75].map((y, i) => (
-          <motion.path key={`left-${i}`} d={`M 20 ${y} Q 35 ${y} 50 50`} fill="none" stroke="url(#match-stream-left)" strokeWidth="0.5" strokeDasharray="2 4" animate={{ strokeDashoffset: [10, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: i * 0.2 }} />
+          <path key={`left-${i}`} d={`M 20 ${y} Q 35 ${y} 50 50`} fill="none" stroke="url(#match-stream-left)" strokeWidth="0.5" strokeDasharray="2 4" />
         ))}
         {/* Streams from Core to Employers */}
         {[25, 40, 60, 75].map((y, i) => (
-          <motion.path key={`right-${i}`} d={`M 50 50 Q 65 ${y} 80 ${y}`} fill="none" stroke="url(#match-stream-right)" strokeWidth="0.5" strokeDasharray="2 4" animate={{ strokeDashoffset: [10, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: i * 0.2 }} />
+          <path key={`right-${i}`} d={`M 50 50 Q 65 ${y} 80 ${y}`} fill="none" stroke="url(#match-stream-right)" strokeWidth="0.5" strokeDasharray="2 4" />
         ))}
       </svg>
 
-      {/* Floating Seekers and Employers */}
+      {/* Floating Seekers and Employers (Static Optimized) */}
       <div className="absolute inset-0 z-20">
-        <motion.div animate={{ y: [-5, 5, -5] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="absolute left-[15%] top-[20%] p-4 bg-purple-900/30 backdrop-blur-md rounded-full border border-purple-500/30"><FaUsers className="w-6 h-6 text-purple-400" /></motion.div>
-        <motion.div animate={{ y: [5, -5, 5] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute left-[15%] top-[70%] p-4 bg-purple-900/30 backdrop-blur-md rounded-full border border-purple-500/30"><FaUserTie className="w-6 h-6 text-purple-400" /></motion.div>
+        <div className="absolute left-[15%] top-[20%] p-4 bg-purple-900/30 backdrop-blur-md rounded-full border border-purple-500/30"><FaUsers className="w-6 h-6 text-purple-400" /></div>
+        <div className="absolute left-[15%] top-[70%] p-4 bg-purple-900/30 backdrop-blur-md rounded-full border border-purple-500/30"><FaUserTie className="w-6 h-6 text-purple-400" /></div>
         
-        <motion.div animate={{ y: [-5, 5, -5] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }} className="absolute right-[15%] top-[20%] p-4 bg-blue-900/30 backdrop-blur-md rounded-xl border border-blue-500/30"><FaBuilding className="w-8 h-8 text-blue-400" /></motion.div>
-        <motion.div animate={{ y: [5, -5, 5] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }} className="absolute right-[15%] top-[70%] p-4 bg-blue-900/30 backdrop-blur-md rounded-xl border border-blue-500/30"><FaBuilding className="w-8 h-8 text-blue-400" /></motion.div>
+        <div className="absolute right-[15%] top-[20%] p-4 bg-blue-900/30 backdrop-blur-md rounded-xl border border-blue-500/30"><FaBuilding className="w-8 h-8 text-blue-400" /></div>
+        <div className="absolute right-[15%] top-[70%] p-4 bg-blue-900/30 backdrop-blur-md rounded-xl border border-blue-500/30"><FaBuilding className="w-8 h-8 text-blue-400" /></div>
       </div>
       
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.95)_100%)] z-40 pointer-events-none" />
@@ -673,26 +667,26 @@ const NetworkingCinematicEngine = () => {
 const EliteTalentEngine = () => {
   return (
     <div className="absolute inset-0 z-0 bg-[#0A0612] overflow-hidden flex items-center justify-center">
-      <motion.div className="absolute w-[200%] h-[200%] opacity-40 mix-blend-screen" animate={{ rotate: [0, 45, 0] }} transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }} style={{ background: 'radial-gradient(circle at 50% 50%, rgba(217, 119, 6, 0.2) 0%, transparent 40%), radial-gradient(circle at 30% 70%, rgba(79, 70, 229, 0.2) 0%, transparent 40%)' }} />
+      <div className="absolute w-[200%] h-[200%] opacity-30" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(217, 119, 6, 0.2) 0%, transparent 40%), radial-gradient(circle at 30% 70%, rgba(79, 70, 229, 0.2) 0%, transparent 40%)' }} />
       
-      {/* Central World-Class Globe */}
+      {/* Central World-Class Globe (Static Optimized) */}
       <div className="relative z-20 flex items-center justify-center">
-        <motion.div className="absolute w-72 h-72 border border-amber-500/20 rounded-full border-t-amber-400" animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} />
-        <motion.div className="absolute w-80 h-80 border-2 border-dotted border-amber-300/30 rounded-full" animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} />
+        <div className="absolute w-72 h-72 border border-amber-500/20 rounded-full border-t-amber-400" />
+        <div className="absolute w-80 h-80 border-2 border-dotted border-amber-300/30 rounded-full" />
         
         <div className="relative p-10 bg-slate-900/60 backdrop-blur-lg rounded-full border border-amber-500/40 shadow-[0_0_80px_rgba(217,119,6,0.25)]">
-          <motion.div animate={{ rotateY: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} style={{ transformStyle: 'preserve-3d' }}>
+          <div>
             <FaGlobe className="w-20 h-20 text-amber-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" />
-          </motion.div>
+          </div>
         </div>
         
-        {/* Elite Stars Orbiting */}
-        <motion.div className="absolute w-[400px] h-[400px]" animate={{ rotate: 360 }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }}>
+        {/* Elite Stars (Static Optimized) */}
+        <div className="absolute w-[400px] h-[400px]">
            <FaStar className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_#fcd34d]" />
            <FaStar className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_#fcd34d]" />
            <FaStar className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_#fcd34d]" />
            <FaStar className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_#fcd34d]" />
-        </motion.div>
+        </div>
       </div>
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.95)_100%)] z-40 pointer-events-none" />
@@ -706,20 +700,19 @@ const DataStreamEngine = () => {
       {/* Background Grid */}
       <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(rgba(34, 211, 238, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.1) 1px, transparent 1px)`, backgroundSize: '40px 40px', transform: 'perspective(500px) rotateX(60deg)', transformOrigin: 'bottom' }} />
       
-      {/* Real-time Data Bars */}
+      {/* Real-time Data Bars (Static Optimized) */}
       <div className="relative z-10 w-full h-[60%] flex items-end justify-between px-8 pb-16 opacity-80">
         {Array.from({ length: 12 }).map((_, i) => (
-          <motion.div 
+          <div 
             key={i} 
             className="w-8 bg-gradient-to-t from-cyan-900/80 to-cyan-400/80 rounded-t-sm border-t border-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.5)]"
-            animate={{ height: [`${Math.random() * 40 + 20}%`, `${Math.random() * 80 + 20}%`, `${Math.random() * 40 + 20}%`] }}
-            transition={{ duration: Math.random() * 2 + 1, repeat: Infinity, ease: "easeInOut" }}
+            style={{ height: `${(i % 5) * 15 + 20}%` }}
           />
         ))}
       </div>
 
-      {/* Cinematic Precision Scanner */}
-      <motion.div className="absolute top-0 left-0 w-full h-[2px] bg-emerald-400 shadow-[0_0_15px_#34d399,0_0_30px_#34d399] z-20" animate={{ y: ['0vh', '100vh', '0vh'] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
+      {/* Cinematic Precision Scanner (Static Optimized) */}
+      <div className="absolute top-[30%] left-0 w-full h-[2px] bg-emerald-400 shadow-[0_0_15px_#34d399,0_0_30px_#34d399] z-20" />
       
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.95)_100%)] z-40 pointer-events-none" />
     </div>
@@ -729,17 +722,17 @@ const DataStreamEngine = () => {
 const LeadershipEngine = () => {
   return (
     <div className="absolute inset-0 z-0 bg-[#040816] overflow-hidden flex items-center justify-center">
-      {/* Forward Moving Hyperspace / Light Speed effect */}
+      {/* Forward Moving Hyperspace (Static Optimized) */}
       <div className="absolute inset-0 z-0">
-        {Array.from({ length: 40 }).map((_, i) => (
-          <motion.div key={i} className="absolute w-[2px] h-32 bg-gradient-to-b from-blue-400 to-transparent opacity-50 rounded-full" style={{ left: `${Math.random() * 100}%`, top: `-20%` }} animate={{ y: ['0vh', '120vh'] }} transition={{ duration: Math.random() * 1 + 0.5, repeat: Infinity, ease: "linear", delay: Math.random() * 2 }} />
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div key={i} className="absolute w-[2px] h-32 bg-gradient-to-b from-blue-400 to-transparent opacity-50 rounded-full" style={{ left: `${(i * 5)}%`, top: `${(i % 3) * 30}%` }} />
         ))}
       </div>
 
-      {/* Leadership Arrow / Ascending Shape */}
-      <motion.div className="relative z-20 p-10 bg-blue-900/30 backdrop-blur-2xl rounded-3xl border-t-2 border-blue-400 shadow-[0_0_80px_rgba(59,130,246,0.3)]" animate={{ y: [-15, 15, -15] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+      {/* Leadership Arrow (Static Optimized) */}
+      <div className="relative z-20 p-10 bg-blue-900/30 backdrop-blur-2xl rounded-3xl border-t-2 border-blue-400 shadow-[0_0_80px_rgba(59,130,246,0.3)]">
         <FaArrowUp className="w-24 h-24 text-blue-400 drop-shadow-[0_0_20px_#60a5fa]" />
-      </motion.div>
+      </div>
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.95)_100%)] z-40 pointer-events-none" />
     </div>
@@ -749,17 +742,17 @@ const LeadershipEngine = () => {
 const TransformationEngine = () => {
   return (
     <div className="absolute inset-0 z-0 bg-[#0A0216] overflow-hidden flex items-center justify-center">
-      {/* Morphing Blob Background */}
-      <motion.div className="absolute w-[400px] h-[400px] bg-fuchsia-600/30 blur-[80px] rounded-full mix-blend-screen" animate={{ scale: [1, 1.5, 1], borderRadius: ['50%', '30%', '50%'] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div className="absolute w-[300px] h-[300px] bg-cyan-600/30 blur-[60px] rounded-full mix-blend-screen" animate={{ scale: [1.5, 1, 1.5], borderRadius: ['30%', '50%', '30%'] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} />
+      {/* Morphing Blob Background (Static Optimized) */}
+      <div className="absolute w-[400px] h-[400px] bg-fuchsia-600/30 blur-[80px] rounded-[40%]" />
+      <div className="absolute w-[300px] h-[300px] bg-cyan-600/30 blur-[60px] rounded-[30%]" />
 
-      {/* Central Transforming Geometric Core */}
-      <motion.div className="relative z-20 flex items-center justify-center" animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
-        <motion.div className="absolute w-48 h-48 border-[3px] border-fuchsia-400/80 shadow-[0_0_30px_#d946ef]" animate={{ borderRadius: ['10%', '50%', '10%'], rotate: [0, 90, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />
-        <motion.div className="absolute w-48 h-48 border-[3px] border-cyan-400/80 shadow-[0_0_30px_#22d3ee]" animate={{ borderRadius: ['50%', '10%', '50%'], rotate: [90, 0, 90] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />
+      {/* Central Transforming Geometric Core (Static Optimized) */}
+      <div className="relative z-20 flex items-center justify-center rotate-45">
+        <div className="absolute w-48 h-48 border-[3px] border-fuchsia-400/80 shadow-[0_0_30px_#d946ef] rounded-[20%]" />
+        <div className="absolute w-48 h-48 border-[3px] border-cyan-400/80 shadow-[0_0_30px_#22d3ee] rounded-[30%] -rotate-12" />
         
-        <FaBolt className="w-16 h-16 text-white drop-shadow-[0_0_20px_#fff] z-30" />
-      </motion.div>
+        <FaBolt className="w-16 h-16 text-white drop-shadow-[0_0_20px_#fff] z-30 -rotate-45" />
+      </div>
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.95)_100%)] z-40 pointer-events-none" />
     </div>
@@ -794,19 +787,18 @@ const CinematicMotionGraphic = () => {
 
   return (
     <div className="relative w-full max-w-[500px] xl:max-w-[700px] h-[600px] xl:h-[800px] rounded-[2.5rem] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.4)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-slate-200/50 dark:border-white/10 group bg-slate-950">
-      {/* Dynamic Cinematic Carousel - Fades between 5 custom WebGL-style scenes */}
-      <AnimatePresence mode="popLayout">
-        <motion.div
-          key={subtitleIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: "easeInOut" }}
-          className="absolute inset-0 z-0"
-        >
-          {engines[subtitleIndex]}
-        </motion.div>
-      </AnimatePresence>
+      {/* Dynamic Cinematic Carousel - Renders all scenes to avoid DOM destruction lag, fades opacity */}
+      <div className="absolute inset-0 z-0">
+        {engines.map((Engine, idx) => (
+          <div 
+            key={idx} 
+            className="absolute inset-0 transition-opacity duration-[1200ms] ease-in-out"
+            style={{ opacity: subtitleIndex === idx ? 1 : 0, pointerEvents: subtitleIndex === idx ? 'auto' : 'none' }}
+          >
+            {Engine}
+          </div>
+        ))}
+      </div>
 
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/80 to-transparent z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-full h-72 bg-gradient-to-t from-black via-black/80 to-transparent z-10 pointer-events-none" />
@@ -915,15 +907,16 @@ function HapticTestimonialCard({ testimonial }) {
     >
       {/* Clipping Wrapper for 3D Border (Pure Blue) */}
       <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none [mask-image:radial-gradient(white,black)]" style={{ transform: "translateZ(0)" }}>
-        <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,#dbeafe,#3b82f6,#1e3a8a,#dbeafe)] animate-[spin_3s_linear_infinite]" />
+        <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,#dbeafe,#3b82f6,#1e3a8a,#dbeafe)] opacity-60" />
       </div>
 
       <div className="relative z-10 w-full h-full p-6 md:p-10 flex flex-col md:flex-row items-center gap-8 bg-white/90 dark:bg-slate-900/80 backdrop-blur-lg rounded-[2.4rem] border border-white/80 dark:border-white/10">
       <img 
-        src={testimonial.image} 
-        alt="Profile" 
+        src={testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.author)}&background=0D8ABC&color=fff`} 
+        onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.author)}&background=0D8ABC&color=fff` }}
+        alt={testimonial.author} 
         style={{ transform: "translateZ(40px)" }}
-        className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-xl flex-shrink-0"
+        className="w-20 h-20 md:w-32 md:h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-xl flex-shrink-0"
       />
       <div className="flex-grow text-center md:text-left" style={{ transform: "translateZ(30px)" }}>
         <p className="text-xl md:text-2xl font-medium text-slate-800 dark:text-slate-100 italic mb-6 leading-relaxed">
@@ -1025,41 +1018,137 @@ function PremiumHeroCarousel() {
   );
 }
 
+function DynamicStatsSection() {
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
+  const { ref: statsRef, inView: statsInView } = useInView({ threshold: 0.1, triggerOnce: true });
+  const dynamicStatsRef = useRef(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveCardIndex((prev) => (prev + 1) % 3);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const staggerContainer = useMemo(() => ({
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+  }), []);
+
+  const fadeInUp = useMemo(() => ({
+    hidden: { opacity: 0, y: 60, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 60, damping: 12, duration: 0.8 } }
+  }), []);
+
+  return (
+    <section ref={dynamicStatsRef} className="relative w-full py-24">
+      <div className="w-full flex items-center justify-center py-20 px-4">
+        <motion.div 
+          ref={statsRef}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={staggerContainer}
+          className="w-full mx-auto relative flex flex-col justify-center h-full max-h-[1000px]"
+        >
+        {/* Connecting Circuit Lines (Background) */}
+        <div className="absolute top-[60%] left-0 w-full h-[2px] hidden md:block z-0 pointer-events-none opacity-20 dark:opacity-30">
+           <div className="w-full h-full bg-gradient-to-r from-transparent via-primary-500 to-transparent" />
+        </div>
+
+        <motion.div variants={fadeInUp} className="text-center mb-12">
+          <h2 className="text-3xl lg:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Trusted by professionals globally</h2>
+        </motion.div>
+        
+        {/* Stat Cards Grid - Ultra Premium 3D Isometric Effect */}
+        <div className="grid grid-cols-1 md:grid-cols-3 place-items-center w-full max-w-7xl mx-auto gap-8 relative z-20 perspective-[2000px] mt-20 px-4">
+          {[
+            { icon: FaUsers, count: 50000, label: "Active Job Seekers", suffix: "+", yOffset: 0 },
+            { icon: FaBriefcase, count: 100000, label: "Job Openings", suffix: "+", yOffset: -40 },
+            { icon: FaChartLine, count: 98, label: "Placement Success", suffix: "%", yOffset: 0 }
+          ].map((stat, i) => {
+            const isActive = activeCardIndex === i;
+            return (
+              <motion.div
+                key={i}
+                animate={{
+                  rotateY: isActive ? 0 : i === 0 ? 25 : -25,
+                  scale: isActive ? 1.1 : 0.85,
+                  z: isActive ? 80 : -80,
+                  opacity: isActive ? 1 : 0.5,
+                }}
+                transition={{ type: "spring", stiffness: 70, damping: 25 }}
+                className={`relative p-[2px] group w-full max-w-[320px] aspect-square rounded-[2.5rem] transition-all duration-700 ${isActive ? 'shadow-[0_0_80px_rgba(56,189,248,0.4)]' : 'shadow-2xl'}`}
+                style={{ zIndex: isActive ? 50 : 10, marginTop: stat.yOffset }}
+              >
+                {/* Clipping Wrapper for 3D Border (Holographic Cyan) */}
+                <div className={`absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none [mask-image:radial-gradient(white,black)] transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`} style={{ transform: "translateZ(0)" }}>
+                  <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,#0ea5e9,#38bdf8,#818cf8,#3b82f6,#0ea5e9)] opacity-60" />
+                </div>
+
+                <div className="relative z-10 p-10 flex flex-col items-center justify-center text-center w-full h-full rounded-[2.4rem] bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-800/80 dark:to-slate-800/40 backdrop-blur-lg border border-white/80 dark:border-white/10">
+                <motion.div variants={fadeInUp}>
+                  <div className="w-16 h-16 bg-primary-500/10 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-inner border border-primary-500/20 transition-transform duration-300">
+                    <stat.icon className={`text-3xl transition-colors duration-500 ${isActive ? "text-primary-600 dark:text-primary-400 scale-110" : "text-slate-400 dark:text-slate-500"}`} />
+                  </div>
+                  <h3 className={`text-4xl font-bold mb-2 transition-colors duration-500 ${isActive ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"}`}>
+                    {statsInView ? <CountUp end={stat.count} duration={2.5} separator="," /> : "0"}{stat.suffix}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 font-medium">{stat.label}</p>
+                </motion.div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Dynamic Testimonial Container */}
+        <div className="mt-12 relative w-full max-w-7xl mx-auto z-10 min-h-[250px]">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0 w-full"
+            >
+              {/* Ultra Premium Glowing Laser Beam connecting the card */}
+              <div 
+                className="absolute bottom-[100%] w-[3px] bg-gradient-to-t from-cyan-400 to-transparent transition-all duration-700 ease-in-out hidden md:block shadow-[0_0_20px_rgba(34,211,238,0.8)]"
+                style={{ 
+                  left: activeCardIndex === 0 ? '16.66%' : activeCardIndex === 1 ? '50%' : '83.33%',
+                  height: activeCardIndex === 1 ? '110px' : '70px',
+                  transform: 'translateX(-50%)',
+                  zIndex: 5
+                }}
+              />
+              
+              {/* The Connector Arrow */}
+              <div 
+                className="absolute -top-4 w-8 h-8 bg-white dark:bg-[#151e2d] border-t-2 border-l-2 border-cyan-400 rotate-45 transform origin-center transition-all duration-700 ease-in-out hidden md:block shadow-[-10px_-10px_20px_rgba(34,211,238,0.2)]"
+                style={{ 
+                  left: activeCardIndex === 0 ? '16.66%' : activeCardIndex === 1 ? '50%' : '83.33%',
+                  transform: 'translateX(-50%) rotate(45deg)',
+                  zIndex: 10
+                }}
+              />
+              
+              {/* Testimonial Content (Updates without unmounting) */}
+              <div className="transition-opacity duration-500" key={`testim-${activeCardIndex}`}>
+                <HapticTestimonialCard testimonial={testimonialsData[activeCardIndex][testimonialIndex]} />
+              </div>
+            </motion.div>
+        </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const choosePathRef = useRef(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSearchHovered, setIsSearchHovered] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const mouseRafRef = useRef(null);
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (mouseRafRef.current) return;
-      mouseRafRef.current = requestAnimationFrame(() => {
-        setMousePosition({ x: e.clientX, y: e.clientY });
-        mouseX.set(e.clientX);
-        mouseY.set(e.clientY);
-        mouseRafRef.current = null;
-      });
-    };
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => { window.removeEventListener('mousemove', handleMouseMove); if (mouseRafRef.current) cancelAnimationFrame(mouseRafRef.current); };
-  }, [mouseX, mouseY]);
-
-  // Liquid Distortion Physics based on Cursor Velocity
-  const mouseVelocityX = useVelocity(mouseX);
-  const mouseVelocityY = useVelocity(mouseY);
-  const smoothVelocityX = useSpring(mouseVelocityX, { damping: 50, stiffness: 400 });
-  const smoothVelocityY = useSpring(mouseVelocityY, { damping: 50, stiffness: 400 });
-  
-  // Combine X and Y velocity magnitude for the distortion scale
-  const distortionScaleX = useTransform(smoothVelocityX, [-2000, 0, 2000], [60, 5, 60]);
-  const distortionScaleY = useTransform(smoothVelocityY, [-2000, 0, 2000], [60, 5, 60]);
-  const liquidScale = useTransform(() => Math.max(distortionScaleX.get(), distortionScaleY.get()));
 
   // 2. Scroll-Velocity Element Skewing
   const { scrollY, scrollYProgress } = useScroll();
@@ -1073,7 +1162,6 @@ export default function HomePage() {
   const gridTranslateZ = useTransform(scrollYProgress, [0, 0.5], ["-800px", "200px"]);
 
   // Scroll-Driven Exploding Typography Physics
-  const explodeBlur = useTransform(scrollY, [0, 500], ["blur(0px)", "blur(20px)"]);
   const explodeScale = useTransform(scrollY, [0, 500], [1, 1.5]);
   const explodeOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const explodeY = useTransform(scrollY, [0, 500], [0, -100]);
@@ -1091,22 +1179,6 @@ export default function HomePage() {
   const searchDockY = useTransform(scrollY, [600, 800], ["-100%", "0%"]);
   const searchDockOpacity = useTransform(scrollY, [600, 800], [0, 1]);
 
-
-  // Dynamic Testimonial State
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
-  const [testimonialIndex, setTestimonialIndex] = useState(0);
-  const { ref: statsRef, inView: statsInView } = useInView({ threshold: 0.1, triggerOnce: true });
-
-  const dynamicStatsRef = useRef(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveCardIndex((prev) => (prev + 1) % 3);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Memoized animation variants
   const fadeInUp = useMemo(() => ({
     hidden: { opacity: 0, y: 60, scale: 0.95 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 60, damping: 12, duration: 0.8 } }
@@ -1138,7 +1210,7 @@ export default function HomePage() {
   const carouselRotateZ = useTransform(carouselScrollY, [0, 1], ["-5deg", "0deg"]);
 
   return (
-    <motion.div className="flex flex-col font-sans transition-all duration-700 blur-0 brightness-100 overflow-x-hidden w-full max-w-[100vw]">
+    <motion.div className="flex flex-col font-sans transition-all duration-700 blur-0 brightness-100 overflow-x-clip w-full">
 
       {/* 2. Scroll-Docking Search Bar */}
       <motion.div 
@@ -1151,9 +1223,9 @@ export default function HomePage() {
       {/* Hero Section — Full Bleed Asymmetric Layout */}
       <motion.section 
         id="hero"
-        style={{ scale: heroScale, opacity: heroOpacity, transformOrigin: "center top", willChange: 'transform, opacity' }}
+        style={{ scale: heroScale, opacity: heroOpacity, transformOrigin: "center top" }}
         onClick={handleHeroClick}
-        className="relative flex-grow pt-12 lg:pt-20 pb-16 min-h-[calc(100vh-6rem)] cursor-pointer overflow-hidden"
+        className="relative flex-grow pt-12 lg:pt-20 pb-16 min-h-[calc(100vh-6rem)] cursor-pointer overflow-visible z-10"
       >
         {/* Architectural Edge Accents - Left */}
         <div className="absolute inset-y-0 left-0 w-[4vw] 2xl:w-[6vw] pointer-events-none hidden lg:block border-r border-slate-200/40 dark:border-slate-800/40">
@@ -1177,27 +1249,10 @@ export default function HomePage() {
 
 
 
-        {/* Interactive Fluid Background */}
-        <div 
-          className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden pointer-events-none z-0"
-          style={{ filter: 'url(#liquidFilter)', willChange: 'filter' }}
-        >
-          <motion.div
-            animate={{ x: mousePosition.x - 400, y: mousePosition.y - 400 }}
-            transition={{ type: "spring", stiffness: 20, damping: 15, mass: 2 }}
-            className="absolute w-[800px] h-[800px] rounded-full bg-primary-500/20 dark:bg-primary-600/15 blur-[120px] mix-blend-screen"
-            style={{ willChange: 'transform' }}
-          />
-          <motion.div 
-            animate={{ rotate: [0, 360], scale: [1, 1.1, 1] }}
-            transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-r from-cyan-400/10 to-blue-600/10 dark:from-primary-900/20 dark:to-indigo-900/20 blur-[80px]"
-          />
-          <motion.div 
-            animate={{ rotate: [360, 0], scale: [1, 1.3, 1] }}
-            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-            className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-l from-violet-400/10 to-blue-500/10 dark:from-indigo-900/20 dark:to-slate-900/20 blur-[100px]"
-          />
+        {/* Static Premium Background */}
+        <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.15),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.1),transparent_60%)] pointer-events-none" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.15),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.1),transparent_60%)] pointer-events-none" />
           <AnimatePresence>
             {ripples.map(r => (
               <motion.div 
@@ -1213,21 +1268,19 @@ export default function HomePage() {
           </AnimatePresence>
         </div>
 
-        {/* 4. Interactive 3D CSS Scroll Parallax */}
+        {/* 4. Interactive 3D CSS Scroll Parallax (Optimized to Single CSS Grid) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" style={{ perspective: "1500px" }}>
           <motion.div 
-            style={{ rotateX: gridRotateX, z: gridTranslateZ, transformStyle: "preserve-3d" }}
-            className="absolute top-[-50vh] left-[-50vw] w-[200vw] h-[200vh] grid grid-cols-12 grid-rows-12 gap-4 lg:gap-8 opacity-10 dark:opacity-20"
+            style={{ rotateX: gridRotateX, z: gridTranslateZ }}
+            className="absolute top-[-50vh] left-[-50vw] w-[200vw] h-[200vh] opacity-10 dark:opacity-20"
           >
-            {Array.from({ length: 144 }).map((_, i) => (
-              <div key={i} className="w-full h-full border border-slate-500 rounded-2xl bg-gradient-to-br from-white/10 to-transparent backdrop-blur-md" />
-            ))}
+            <div className="w-full h-full border border-slate-500 rounded-2xl bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
           </motion.div>
         </div>
         
         {/* Full Bleed Content Container */}
         <motion.div 
-          style={{ opacity: explodeOpacity, scale: explodeScale, filter: explodeBlur, y: explodeY, willChange: 'transform, opacity, filter' }} 
+          style={{ opacity: explodeOpacity, scale: explodeScale, y: explodeY }} 
           className="relative z-10 w-full px-6 lg:px-16 2xl:px-32 mx-auto flex flex-col justify-center min-h-[calc(100vh-120px)] max-md:min-h-0 max-md:py-20"
         >
           {/* Top Row: Split Layout — Text Left, Visual Right */}
@@ -1261,24 +1314,24 @@ export default function HomePage() {
               >
                 <div className="whitespace-nowrap max-md:whitespace-normal overflow-hidden">
                   <motion.div variants={wordReveal3D} style={{ transformOrigin: "bottom" }} className="inline-block pb-2 drop-shadow-sm pr-3 lg:pr-4">
-                    <ShatterText text="Find " scrollYProgress={scrollYProgress} />
+                    <ShatterText text="Find " />
                   </motion.div>
                   <motion.div variants={wordReveal3D} style={{ transformOrigin: "bottom" }} className="inline-block pb-2 drop-shadow-sm pr-3 lg:pr-4">
-                    <ShatterText text="your " scrollYProgress={scrollYProgress} />
+                    <ShatterText text="your " />
                   </motion.div>
                   <motion.div variants={wordReveal3D} style={{ transformOrigin: "bottom" }} className="inline-block pb-2 drop-shadow-sm pr-3 lg:pr-4">
-                    <ShatterText text="next " scrollYProgress={scrollYProgress} />
+                    <ShatterText text="next " />
                   </motion.div>
                   <motion.div variants={wordReveal3D} style={{ transformOrigin: "bottom" }} className="inline-block text-primary-600 dark:text-primary-400 pb-2 drop-shadow-md pr-2 lg:pr-3">
-                    <ShatterText text="dream job" scrollYProgress={scrollYProgress} />
+                    <ShatterText text="dream job" />
                   </motion.div>
                 </div>
                 <div className="whitespace-nowrap overflow-hidden hidden lg:block">
                   <motion.div variants={wordReveal3D} style={{ transformOrigin: "bottom" }} className="inline-block pb-2 drop-shadow-sm pr-3 lg:pr-4">
-                    <ShatterText text="with " scrollYProgress={scrollYProgress} />
+                    <ShatterText text="with " />
                   </motion.div>
                   <motion.div variants={wordReveal3D} style={{ transformOrigin: "bottom" }} className="inline-block pb-2 drop-shadow-sm">
-                    <ShatterText text="confidence." scrollYProgress={scrollYProgress} />
+                    <ShatterText text="confidence." />
                   </motion.div>
                 </div>
               </motion.h1>
@@ -1339,7 +1392,7 @@ export default function HomePage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: false, amount: 0.1 }}
               transition={{ type: "spring", stiffness: 50, damping: 20, delay: 0.3 }}
-              className="flex-1 relative flex items-center justify-center lg:translate-x-24 xl:translate-x-36 min-h-[420px] lg:min-h-[600px] w-full max-w-lg lg:max-w-none"
+              className="flex-1 relative flex items-center justify-center lg:translate-x-24 xl:translate-x-36 min-h-[420px] lg:min-h-[600px] w-full max-w-lg lg:max-w-none z-50"
             >
               <PremiumHeroCarousel />
             </motion.div>
@@ -1363,9 +1416,7 @@ export default function HomePage() {
             transformOrigin: "center center", 
             rotateX: carouselRotateX, 
             rotateZ: carouselRotateZ, 
-            transformStyle: "preserve-3d", 
-            willChange: 'transform',
-            filter: 'url(#goo)' // Applies the melting gooey effect
+            transformStyle: "preserve-3d"
           }}
           whileHover={{ rotateX: "0deg", rotateZ: "0deg", scale: 1.1, transition: { duration: 0.5 } }}
         >
@@ -1390,119 +1441,7 @@ export default function HomePage() {
       <StackingFeatureDeck />
 
       {/* Dynamic Statistics Section - Auto Rotating */}
-      <section ref={dynamicStatsRef} className="relative w-full py-24">
-        <div className="w-full flex items-center justify-center py-20 px-4">
-          <motion.div 
-            ref={statsRef}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-            variants={staggerContainer}
-            className="w-full mx-auto relative flex flex-col justify-center h-full max-h-[1000px]"
-          >
-          {/* Connecting Circuit Lines (Background) */}
-          <div className="absolute top-[60%] left-0 w-full h-[2px] hidden md:block z-0 pointer-events-none opacity-20 dark:opacity-30">
-             <div className="w-full h-full bg-gradient-to-r from-transparent via-primary-500 to-transparent" />
-          </div>
-
-          <motion.div variants={fadeInUp} className="text-center mb-12">
-            <h2 className="text-3xl lg:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Trusted by professionals globally</h2>
-          </motion.div>
-          
-          {/* Stat Cards Grid - Ultra Premium 3D Isometric Effect */}
-          <div className="grid grid-cols-1 md:grid-cols-3 place-items-center w-full max-w-7xl mx-auto gap-8 relative z-20 perspective-[2000px] mt-20 px-4">
-            {[
-              { icon: FaUsers, count: 50000, label: "Active Job Seekers", suffix: "+", yOffset: 0 },
-              { icon: FaBriefcase, count: 100000, label: "Job Openings", suffix: "+", yOffset: -40 },
-              { icon: FaChartLine, count: 98, label: "Placement Success", suffix: "%", yOffset: 0 }
-            ].map((stat, i) => {
-              const isActive = activeCardIndex === i;
-              return (
-                <motion.div
-                  key={i}
-                  animate={{
-                    rotateY: isActive ? 0 : i === 0 ? 25 : -25,
-                    scale: isActive ? 1.1 : 0.85,
-                    z: isActive ? 80 : -80,
-                    opacity: isActive ? 1 : 0.5,
-                  }}
-                  transition={{ type: "spring", stiffness: 70, damping: 25 }}
-                  className={`relative p-[2px] group w-full max-w-[320px] aspect-square rounded-[2.5rem] transition-all duration-700 ${isActive ? 'shadow-[0_0_80px_rgba(56,189,248,0.4)]' : 'shadow-2xl'}`}
-                  style={{ zIndex: isActive ? 50 : 10, marginTop: stat.yOffset }}
-                >
-                  {/* Clipping Wrapper for 3D Border (Holographic Cyan) */}
-                  <div className={`absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none [mask-image:radial-gradient(white,black)] transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`} style={{ transform: "translateZ(0)" }}>
-                    <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,#0ea5e9,#38bdf8,#818cf8,#3b82f6,#0ea5e9)] animate-[spin_2s_linear_infinite]" />
-                  </div>
-
-                  <div className="relative z-10 p-10 flex flex-col items-center justify-center text-center w-full h-full rounded-[2.4rem] bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-800/80 dark:to-slate-800/40 backdrop-blur-lg border border-white/80 dark:border-white/10">
-                  <motion.div variants={fadeInUp}>
-                    <div className="w-16 h-16 bg-primary-500/10 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-inner border border-primary-500/20 transition-transform duration-300">
-                      <stat.icon className={`text-3xl transition-colors duration-500 ${isActive ? "text-primary-600 dark:text-primary-400 scale-110" : "text-slate-400 dark:text-slate-500"}`} />
-                    </div>
-                    <h3 className={`text-4xl font-bold mb-2 transition-colors duration-500 ${isActive ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"}`}>
-                      {statsInView ? <CountUp end={stat.count} duration={2.5} separator="," /> : "0"}{stat.suffix}
-                    </h3>
-                    <p className="text-slate-600 dark:text-slate-400 font-medium">{stat.label}</p>
-                  </motion.div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Dynamic Testimonial Container */}
-          <div className="mt-12 relative w-full max-w-7xl mx-auto z-10 min-h-[250px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${activeCardIndex}-${testimonialIndex}`}
-                initial={{ 
-                  opacity: 0, 
-                  scaleX: 0, 
-                  transformOrigin: activeCardIndex === 0 ? "left" : activeCardIndex === 1 ? "center" : "right" 
-                }}
-                animate={{ 
-                  opacity: 1, 
-                  scaleX: 1,
-                  transformOrigin: activeCardIndex === 0 ? "left" : activeCardIndex === 1 ? "center" : "right" 
-                }}
-                exit={{ 
-                  opacity: 0, 
-                  scaleX: 0,
-                  transformOrigin: activeCardIndex === 0 ? "left" : activeCardIndex === 1 ? "center" : "right"
-                }}
-                transition={{ type: "spring", stiffness: 70, damping: 14, mass: 1 }}
-                className="absolute inset-0 w-full"
-              >
-                {/* Ultra Premium Glowing Laser Beam connecting the card */}
-                <div 
-                  className="absolute bottom-[100%] w-[3px] bg-gradient-to-t from-cyan-400 to-transparent transition-all duration-700 ease-in-out hidden md:block shadow-[0_0_20px_rgba(34,211,238,0.8)]"
-                  style={{ 
-                    left: activeCardIndex === 0 ? '16.66%' : activeCardIndex === 1 ? '50%' : '83.33%',
-                    height: activeCardIndex === 1 ? '110px' : '70px',
-                    transform: 'translateX(-50%)',
-                    zIndex: 5
-                  }}
-                />
-                
-                {/* The Connector Arrow */}
-                <div 
-                  className="absolute -top-4 w-8 h-8 bg-white dark:bg-[#151e2d] border-t-2 border-l-2 border-cyan-400 rotate-45 transform origin-center transition-all duration-700 ease-in-out hidden md:block shadow-[-10px_-10px_20px_rgba(34,211,238,0.2)]"
-                  style={{ 
-                    left: activeCardIndex === 0 ? '16.66%' : activeCardIndex === 1 ? '50%' : '83.33%',
-                    transform: 'translateX(-50%) rotate(45deg)',
-                    zIndex: 10
-                  }}
-                />
-                
-                {/* Testimonial Content */}
-                <HapticTestimonialCard testimonial={testimonialsData[activeCardIndex][testimonialIndex]} />
-              </motion.div>
-            </AnimatePresence>
-          </div>
-          </motion.div>
-        </div>
-      </section>
+      <DynamicStatsSection />
 
       {/* Choose Your Path */}
       <section id="pathway" ref={choosePathRef} className="py-12 md:py-20 px-6 lg:px-16 xl:px-24 mx-auto w-full relative z-[90] bg-slate-50/50 dark:bg-slate-900/50 min-h-screen flex flex-col justify-center">
