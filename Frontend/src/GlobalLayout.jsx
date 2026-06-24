@@ -18,22 +18,37 @@ import EmployerMenu from "./components/Employer/EmployerMenu";
 const springConfig = { type: "spring", stiffness: 150, damping: 15, mass: 0.1 };
 const MagneticLink = memo(function MagneticLink({ children, to, className, onClick }) {
   const ref = useRef(null);
+  const rectRef = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
+  const handleMouseEnter = useCallback(() => {
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+  }, []);
+
   const handleMouse = useCallback((e) => {
+    if (!rectRef.current && ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    if (!rectRef.current) return;
     const { clientX, clientY } = e;
-    const { height, width, left, top } = ref.current.getBoundingClientRect();
+    const { height, width, left, top } = rectRef.current;
     const middleX = clientX - (left + width / 2);
     const middleY = clientY - (top + height / 2);
     setPosition({ x: middleX * 0.15, y: middleY * 0.15 });
   }, []);
 
-  const reset = useCallback(() => setPosition({ x: 0, y: 0 }), []);
+  const reset = useCallback(() => {
+    setPosition({ x: 0, y: 0 });
+    rectRef.current = null;
+  }, []);
 
   if (onClick && !to) {
     return (
       <motion.button
         ref={ref}
+        onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouse}
         onMouseLeave={reset}
         animate={{ x: position.x, y: position.y }}
@@ -50,6 +65,7 @@ const MagneticLink = memo(function MagneticLink({ children, to, className, onCli
   return (
     <motion.div
       ref={ref}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouse}
       onMouseLeave={reset}
       animate={{ x: position.x, y: position.y }}
@@ -114,6 +130,55 @@ const Toast = memo(function Toast({ message, isVisible }) {
     </AnimatePresence>
   );
 });
+
+// Extracted Nav Spotlight to prevent GlobalLayout from re-rendering
+function NavSpotlight() {
+  const navRef = useRef(null);
+  const rectRef = useRef(null);
+  const [navMousePos, setNavMousePos] = useState({ x: 0, y: 0, opacity: 0 });
+  const navRafRef = useRef(null);
+
+  const handleNavMouseEnter = useCallback(() => {
+    if (navRef.current) {
+      rectRef.current = navRef.current.getBoundingClientRect();
+    }
+  }, []);
+
+  const handleNavMouseMove = useCallback((e) => {
+    if (navRafRef.current) return;
+    navRafRef.current = requestAnimationFrame(() => {
+      if (!rectRef.current && navRef.current) {
+        rectRef.current = navRef.current.getBoundingClientRect();
+      }
+      if (!rectRef.current) { navRafRef.current = null; return; }
+      setNavMousePos({ x: e.clientX - rectRef.current.left, y: e.clientY - rectRef.current.top, opacity: 1 });
+      navRafRef.current = null;
+    });
+  }, []);
+
+  const handleNavMouseLeave = useCallback(() => {
+    setNavMousePos(prev => ({ ...prev, opacity: 0 }));
+    rectRef.current = null;
+  }, []);
+
+  return (
+    <div 
+      className="absolute inset-0 pointer-events-auto z-0 rounded-[inherit]"
+      onMouseEnter={handleNavMouseEnter}
+      onMouseMove={handleNavMouseMove}
+      onMouseLeave={handleNavMouseLeave}
+      ref={navRef}
+    >
+      <div 
+        className="pointer-events-none absolute -inset-px transition-opacity duration-300 z-0 rounded-[inherit]"
+        style={{
+          opacity: navMousePos.opacity,
+          background: `radial-gradient(150px circle at ${navMousePos.x}px ${navMousePos.y}px, rgba(37, 99, 235, 0.15), transparent 40%)`
+        }}
+      />
+    </div>
+  );
+}
 
 function Preloader({ onComplete, mode, particlesInit }) {
   const preloaderParticlesOptions = useMemo(() => ({
@@ -263,8 +328,6 @@ export default function GlobalLayout({ children }) {
     exit: { opacity: 0, y: -50, filter: "blur(20px)", scale: 0.95, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
   };
 
-  const navRef = useRef(null);
-  const [navMousePos, setNavMousePos] = useState({ x: 0, y: 0, opacity: 0 });
   const [toastMsg, setToastMsg] = useState('');
   
   const showToast = (msg) => {
@@ -272,34 +335,17 @@ export default function GlobalLayout({ children }) {
     setTimeout(() => setToastMsg(''), 3000);
   };
 
-  const navRafRef = useRef(null);
-  const handleNavMouseMove = useCallback((e) => {
-    if (navRafRef.current) return;
-    navRafRef.current = requestAnimationFrame(() => {
-      if (!navRef.current) { navRafRef.current = null; return; }
-      const rect = navRef.current.getBoundingClientRect();
-      setNavMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top, opacity: 1 });
-      navRafRef.current = null;
-    });
-  }, []);
-  const handleNavMouseLeave = useCallback(() => setNavMousePos(prev => ({ ...prev, opacity: 0 })), []);
-
-
-
   const [isNavExpanded, setIsNavExpanded] = useState(false);
-
-  if (loading) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Preloader onComplete={() => setLoading(false)} mode={mode} particlesInit={particlesInit} />
-      </ThemeProvider>
-    );
-  }
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      
+      <AnimatePresence>
+        {loading && (
+          <Preloader onComplete={() => setLoading(false)} mode={mode} particlesInit={particlesInit} />
+        )}
+      </AnimatePresence>
       
       {/* Job Seeker Navigation Menu */}
       {['/job', '/profile', '/editprofile', '/all-jobs', '/resume-studio', '/ap'].some(path => location.pathname.startsWith(path)) && (
@@ -366,9 +412,6 @@ export default function GlobalLayout({ children }) {
         {/* Global Navbar */}
         <div className="fixed top-0 left-0 right-0 z-[110] flex justify-center w-full pointer-events-none">
           <motion.nav
-            ref={navRef}
-            onMouseMove={handleNavMouseMove}
-            onMouseLeave={handleNavMouseLeave}
             onClick={() => setIsNavExpanded(!isNavExpanded)}
             initial={{ y: 0, opacity: 0 }}
             animate={{ 
@@ -387,15 +430,9 @@ export default function GlobalLayout({ children }) {
             }}
             className={`pointer-events-auto cursor-pointer shadow-lg transition-all duration-500 overflow-hidden relative ${mode === 'light' ? 'bg-white/80 border-slate-200/60 shadow-[0_4px_30px_rgba(59,130,246,0.08)]' : 'bg-slate-900/70'} backdrop-blur-2xl ${isScrolled && !isNavExpanded ? 'px-4 md:px-8 py-2 md:py-3 shadow-primary-500/10 border-b border-t border-x' : 'px-4 md:px-6 py-3 md:py-4 border-b border-b-transparent shadow-transparent'}`}
           >
-            <div 
-              className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 z-0"
-              style={{
-                opacity: navMousePos.opacity,
-                background: `radial-gradient(150px circle at ${navMousePos.x}px ${navMousePos.y}px, rgba(37, 99, 235, 0.15), transparent 40%)`
-              }}
-            />
-            <div className="relative z-10 flex justify-between items-center w-full">
-              <Link to="/" className="flex items-center space-x-2 md:space-x-3 cursor-pointer scale-90 md:scale-100 origin-left" data-tooltip="Go to Homepage" onClick={(e) => e.stopPropagation()}>
+            <NavSpotlight />
+            <div className="relative z-10 flex justify-between items-center w-full pointer-events-none">
+              <Link to="/" className="flex items-center space-x-2 md:space-x-3 cursor-pointer scale-90 md:scale-100 origin-left pointer-events-auto" data-tooltip="Go to Homepage" onClick={(e) => e.stopPropagation()}>
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-primary-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary-600/30">
                   <FaBriefcase className="text-sm md:text-xl" />
                 </div>
@@ -404,7 +441,7 @@ export default function GlobalLayout({ children }) {
                 </span>
               </Link>
             
-            <div className="flex items-center space-x-3 md:space-x-8 scale-90 md:scale-100 origin-right" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center space-x-3 md:space-x-8 scale-90 md:scale-100 origin-right pointer-events-auto" onClick={(e) => e.stopPropagation()}>
               <MagneticLink 
                 onClick={toggleTheme} 
                 className="p-2 text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -497,7 +534,7 @@ export default function GlobalLayout({ children }) {
         </div>
 
         {/* Main Content with Route Transitions */}
-        <main className="flex-grow relative z-10 origin-center">
+        <main className="flex-grow relative z-10 origin-center min-h-[75vh]">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

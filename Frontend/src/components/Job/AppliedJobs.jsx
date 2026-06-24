@@ -107,6 +107,130 @@ const InterviewModal = ({ open, onClose, details }) => {
   );
 };
 
+const JobCard = ({ job, isInterview, isRejected, formatSalary, handlePreviewResume, handleWithdraw, setModalDetails, fadeInUp }) => {
+  const cardRef = useRef(null);
+  const rectRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    if (rectRef.current) {
+      const x = e.clientX - rectRef.current.left;
+      const y = e.clientY - rectRef.current.top;
+      cardRef.current.style.setProperty('--mouse-x', `${x}px`);
+      cardRef.current.style.setProperty('--mouse-y', `${y}px`);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    rectRef.current = null;
+  };
+
+  return (
+    <motion.div 
+      ref={cardRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeInUp} layout
+      className="job-card relative group bg-white dark:bg-slate-900/60 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col h-full overflow-hidden transition-transform duration-500 hover:-translate-y-2 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-slate-300/50 dark:hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
+    >
+      {/* Glowing Spotlight Effect */}
+      <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
+        style={{ background: `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(59, 130, 246, 0.12), transparent 40%)` }}
+      />
+
+      {/* Massive Status Indicator Line */}
+      <div className={`absolute top-0 left-0 w-full h-2 opacity-90 ${isInterview ? 'bg-emerald-500' : isRejected ? 'bg-rose-500' : 'bg-primary-500'}`} />
+
+      {/* Top Bar: Company & Journey Tracker */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 relative z-10 gap-6">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-inner">
+            <FaBuilding className="text-3xl text-slate-500 dark:text-slate-400" />
+          </div>
+          <div>
+            <h4 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{job.company}</h4>
+            <span className="text-sm font-bold text-slate-500 flex items-center gap-1.5 mt-1">
+              <FaMapMarkerAlt /> {job.location}
+            </span>
+          </div>
+        </div>
+        
+        {/* Sleek Journey Tracker */}
+        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          {isRejected ? (
+            <div className="flex items-center gap-2 px-3 py-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+              <span className="text-xs font-bold text-rose-500 uppercase tracking-widest">Rejected</span>
+            </div>
+          ) : (
+            <>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold bg-primary-500 text-white shadow-md shadow-primary-500/30`}>1</div>
+              <div className={`w-6 h-1 rounded-full ${["shortlisted", "interview scheduled"].includes(job.status) ? 'bg-primary-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${["shortlisted", "interview scheduled"].includes(job.status) ? 'bg-primary-500 text-white shadow-md shadow-primary-500/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>2</div>
+              <div className={`w-6 h-1 rounded-full ${job.status === "interview scheduled" ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${job.status === "interview scheduled" ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>3</div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Title & Tags */}
+      <div className="relative z-10 flex-grow mb-8">
+        <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-5 leading-tight">{job.title}</h3>
+        <div className="flex flex-wrap gap-3">
+          <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-2 shadow-sm">
+            <FaMoneyBillWave className="text-emerald-500 text-lg" /> {formatSalary(job.salary)}
+          </span>
+          <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-2 shadow-sm">
+            <FaClock className="text-primary-500 text-lg" /> {job.appliedAt ? new Date(job.appliedAt).toLocaleDateString() : "N/A"}
+          </span>
+        </div>
+      </div>
+
+      {/* Links / Resumes */}
+      <div className="flex gap-3 mb-8 relative z-10">
+        {job.resume && (
+          <button onClick={() => handlePreviewResume(job.resume)} className="flex items-center gap-2 px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm">
+            <FaFileAlt /> View Resume
+          </button>
+        )}
+        {job.companyWebsite && (
+          <a href={job.companyWebsite} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm">
+            <FaGlobe /> Website
+          </a>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="relative z-10 mt-auto flex flex-col sm:flex-row gap-4">
+        {isInterview && job.interviewDetails && (
+          <button 
+            onClick={() => setModalDetails(job.interviewDetails)}
+            className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg rounded-2xl shadow-[0_10px_20px_rgba(16,185,129,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(16,185,129,0.4)]"
+          >
+            View Interview Invite
+          </button>
+        )}
+        <button 
+          onClick={() => handleWithdraw(job._id)}
+          className={`py-4 px-6 bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 font-bold rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-900/40 transition-colors ${isInterview && job.interviewDetails ? 'sm:w-auto w-full' : 'w-full'}`}
+        >
+          Withdraw
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 export default function AppliedJobs() {
   const [jobs, setJobs] = useState([]);
   const [modalDetails, setModalDetails] = useState(null);
@@ -246,18 +370,6 @@ export default function AppliedJobs() {
     return sorted;
   }, [jobs, sortBy]);
 
-  // Mouse spotlight effect logic for cards
-  const handleMouseMove = (e) => {
-    const cards = document.querySelectorAll('.job-card');
-    cards.forEach((card) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      card.style.setProperty('--mouse-x', `${x}px`);
-      card.style.setProperty('--mouse-y', `${y}px`);
-    });
-  };
-
   const fadeInUp = {
     hidden: { opacity: 0, y: 50 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, type: 'spring', stiffness: 80 } }
@@ -273,7 +385,6 @@ export default function AppliedJobs() {
   return (
     <div 
       className="relative min-h-screen font-sans bg-transparent pt-28 pb-20 px-4 sm:px-8 xl:px-16 overflow-hidden selection:bg-primary-500/30"
-      onMouseMove={handleMouseMove}
     >
       {/* Cinematic Background Orbs (Hardware Accelerated) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -357,104 +468,22 @@ export default function AppliedJobs() {
                   Browse Jobs
                 </button>
               </motion.div>
-            )}
-
-            {sortedJobs.map((job) => {
+            )}            {sortedJobs.map((job) => {
               const isInterview = job.status === "interview scheduled";
               const isRejected = job.status === "rejected";
               
               return (
-                <motion.div 
-                  key={job._id} 
-                  initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeInUp} layout
-                  className="job-card relative group bg-white dark:bg-slate-900/60 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col h-full overflow-hidden transition-transform duration-500 hover:-translate-y-2 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-slate-300/50 dark:hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
-                >
-                  {/* Glowing Spotlight Effect */}
-                  <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
-                    style={{ background: `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(59, 130, 246, 0.12), transparent 40%)` }}
-                  />
-
-                  {/* Massive Status Indicator Line */}
-                  <div className={`absolute top-0 left-0 w-full h-2 opacity-90 ${isInterview ? 'bg-emerald-500' : isRejected ? 'bg-rose-500' : 'bg-primary-500'}`} />
-
-                  {/* Top Bar: Company & Journey Tracker */}
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 relative z-10 gap-6">
-                    <div className="flex items-center gap-5">
-                      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-inner">
-                        <FaBuilding className="text-3xl text-slate-500 dark:text-slate-400" />
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{job.company}</h4>
-                        <span className="text-sm font-bold text-slate-500 flex items-center gap-1.5 mt-1">
-                          <FaMapMarkerAlt /> {job.location}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Sleek Journey Tracker */}
-                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                      {isRejected ? (
-                        <div className="flex items-center gap-2 px-3 py-1">
-                          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                          <span className="text-xs font-bold text-rose-500 uppercase tracking-widest">Rejected</span>
-                        </div>
-                      ) : (
-                        <>
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold bg-primary-500 text-white shadow-md shadow-primary-500/30`}>1</div>
-                          <div className={`w-6 h-1 rounded-full ${["shortlisted", "interview scheduled"].includes(job.status) ? 'bg-primary-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${["shortlisted", "interview scheduled"].includes(job.status) ? 'bg-primary-500 text-white shadow-md shadow-primary-500/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>2</div>
-                          <div className={`w-6 h-1 rounded-full ${job.status === "interview scheduled" ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${job.status === "interview scheduled" ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>3</div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Title & Tags */}
-                  <div className="relative z-10 flex-grow mb-8">
-                    <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-5 leading-tight">{job.title}</h3>
-                    <div className="flex flex-wrap gap-3">
-                      <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-2 shadow-sm">
-                        <FaMoneyBillWave className="text-emerald-500 text-lg" /> {formatSalary(job.salary)}
-                      </span>
-                      <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-2 shadow-sm">
-                        <FaClock className="text-primary-500 text-lg" /> {job.appliedAt ? new Date(job.appliedAt).toLocaleDateString() : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Links / Resumes */}
-                  <div className="flex gap-3 mb-8 relative z-10">
-                    {job.resume && (
-                      <button onClick={() => handlePreviewResume(job.resume)} className="flex items-center gap-2 px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                        <FaFileAlt /> View Resume
-                      </button>
-                    )}
-                    {job.companyWebsite && (
-                      <a href={job.companyWebsite} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                        <FaGlobe /> Website
-                      </a>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="relative z-10 mt-auto flex flex-col sm:flex-row gap-4">
-                    {isInterview && job.interviewDetails && (
-                      <button 
-                        onClick={() => setModalDetails(job.interviewDetails)}
-                        className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg rounded-2xl shadow-[0_10px_20px_rgba(16,185,129,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(16,185,129,0.4)]"
-                      >
-                        View Interview Invite
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => handleWithdraw(job._id)}
-                      className={`py-4 px-6 bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 font-bold rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-900/40 transition-colors ${isInterview && job.interviewDetails ? 'sm:w-auto w-full' : 'w-full'}`}
-                    >
-                      Withdraw
-                    </button>
-                  </div>
-                </motion.div>
+                <JobCard 
+                  key={job._id}
+                  job={job}
+                  isInterview={isInterview}
+                  isRejected={isRejected}
+                  formatSalary={formatSalary}
+                  handlePreviewResume={handlePreviewResume}
+                  handleWithdraw={handleWithdraw}
+                  setModalDetails={setModalDetails}
+                  fadeInUp={fadeInUp}
+                />
               );
             })}
           </AnimatePresence>

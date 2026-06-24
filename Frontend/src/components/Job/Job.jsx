@@ -284,18 +284,6 @@ Be realistic, slightly tough, but professional. Keep your responses short (max 2
     { title: "Shortlisted", count: shortlistedCount, icon: <FaStar className="text-amber-500" size={24} />, onClick: () => navigate('/ap?filter=shortlisted') }
   ];
 
-  // Mouse spotlight effect logic for cards
-  const handleMouseMove = (e) => {
-    const cards = document.querySelectorAll('.job-card');
-    cards.forEach((card) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      card.style.setProperty('--mouse-x', `${x}px`);
-      card.style.setProperty('--mouse-y', `${y}px`);
-    });
-  };
-
   const fadeInUp = {
     hidden: { opacity: 0, y: 50 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, type: 'spring', stiffness: 80 } }
@@ -304,7 +292,6 @@ Be realistic, slightly tough, but professional. Keep your responses short (max 2
   return (
     <div 
       className="relative min-h-screen font-sans bg-transparent pt-28 pb-20 px-4 sm:px-8 xl:px-16 overflow-hidden selection:bg-primary-500/30"
-      onMouseMove={handleMouseMove}
     >
       <ToastContainer position="bottom-right" theme="dark" toastClassName="backdrop-blur-xl bg-slate-900/80 border border-white/10" />
 

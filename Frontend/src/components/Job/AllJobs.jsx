@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
@@ -6,6 +6,145 @@ import { FaSearch, FaMapMarkerAlt, FaBuilding, FaMoneyBillWave, FaArrowLeft, FaF
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+const JobCard = ({ 
+  job, 
+  isApplied, 
+  handleApply, 
+  handleGeneratePrep, 
+  handleGeneratePitch, 
+  handleGenerateCL, 
+  generatingPrepId, 
+  generatingPitchId, 
+  generatingClId 
+}) => {
+  const cardRef = useRef(null);
+  const rectRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    if (rectRef.current) {
+      const x = e.clientX - rectRef.current.left;
+      const y = e.clientY - rectRef.current.top;
+      cardRef.current.style.setProperty('--mouse-x', `${x}px`);
+      cardRef.current.style.setProperty('--mouse-y', `${y}px`);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    rectRef.current = null;
+  };
+
+  return (
+    <motion.div 
+      ref={cardRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3 }}
+      className="all-job-card relative group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 flex flex-col shadow-xl hover:shadow-2xl shadow-slate-200/50 hover:shadow-slate-300/50 dark:shadow-[0_20px_40px_rgba(0,0,0,0.4)] dark:hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all hover:-translate-y-2 overflow-hidden"
+    >
+      {/* Glowing Spotlight Effect */}
+      <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
+        style={{ background: `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(59, 130, 246, 0.15), transparent 40%)` }}
+      />
+      
+      <div className="flex justify-between items-start mb-6 relative z-10">
+        <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center p-2 shadow-inner">
+          {job.companyLogo ? (
+            <img src={`data:${job.companyLogo.contentType};base64,${job.companyLogo.data}`} alt="logo" className="w-full h-full object-contain" />
+          ) : (
+            <FaBuilding className="text-2xl text-slate-300 dark:text-slate-600" />
+          )}
+        </div>
+        <div className="px-4 py-1.5 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 rounded-full text-xs font-black uppercase tracking-widest border border-primary-100 dark:border-primary-500/20">
+          {job.jobType || 'Full Time'}
+        </div>
+      </div>
+
+      <div className="relative z-10 mb-8 flex-1">
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight mb-2 tracking-tight group-hover:text-primary-500 transition-colors">{job.title}</h3>
+        <p className="text-lg font-bold text-slate-500 dark:text-slate-400 mb-4">{job.company}</p>
+        
+        <div className="flex flex-wrap gap-2">
+          <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 rounded-lg text-sm font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
+            <FaMapMarkerAlt className="text-slate-400" /> {job.location || 'Remote'}
+          </span>
+          <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm font-bold flex items-center gap-1.5 border border-emerald-100 dark:border-emerald-500/20">
+            <FaMoneyBillWave className="text-emerald-500" /> ₹{job.salary || 'Competitive'}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => handleApply(job._id)}
+          disabled={isApplied}
+          className={`relative z-10 flex-1 py-4 rounded-xl font-bold text-sm transition-all duration-300 ${
+            isApplied 
+              ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700' 
+              : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-primary-600 dark:hover:bg-primary-500 hover:text-white shadow-lg shadow-slate-900/20 dark:shadow-white/10 hover:shadow-primary-500/30 hover:-translate-y-1'
+          }`}
+        >
+          {isApplied ? 'Application Sent' : 'Apply Now'}
+        </button>
+        {isApplied ? (
+          <button
+            onClick={() => handleGeneratePrep(job)}
+            disabled={generatingPrepId === job._id}
+            className="relative z-10 px-5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl font-bold flex items-center justify-center transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-emerald-500/30 disabled:opacity-70 disabled:cursor-wait group"
+            title="Generate Interview Prep via AI"
+          >
+            {generatingPrepId === job._id ? (
+              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            ) : (
+              <FaBriefcase className="text-xl group-hover:-translate-y-1 transition-transform" />
+            )}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => handleGeneratePitch(job)}
+              disabled={generatingPitchId === job._id}
+              className="relative z-10 px-5 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white rounded-xl font-bold flex items-center justify-center transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-indigo-500/30 disabled:opacity-70 disabled:cursor-wait group"
+              title="Generate Custom Pitch via AI"
+            >
+              {generatingPitchId === job._id ? (
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              ) : (
+                <FaStar className="text-xl group-hover:rotate-12 transition-transform" />
+              )}
+            </button>
+            <button
+              onClick={() => handleGenerateCL(job)}
+              disabled={generatingClId === job._id}
+              className="relative z-10 px-5 bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white rounded-xl font-bold flex items-center justify-center transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-pink-500/30 disabled:opacity-70 disabled:cursor-wait group"
+              title="Generate Cover Letter via AI"
+            >
+              {generatingClId === job._id ? (
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              ) : (
+                <FaBriefcase className="text-xl group-hover:-translate-y-1 transition-transform" />
+              )}
+            </button>
+          </>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 
 export default function AllJobs() {
   const [jobs, setJobs] = useState([]);
@@ -164,21 +303,9 @@ export default function AllJobs() {
     });
   }, [jobs, search, locationFilter, salaryFilter]);
 
-  const handleMouseMove = (e) => {
-    const cards = document.querySelectorAll('.all-job-card');
-    cards.forEach((card) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      card.style.setProperty('--mouse-x', `${x}px`);
-      card.style.setProperty('--mouse-y', `${y}px`);
-    });
-  };
-
   return (
     <div 
       className="relative min-h-screen font-sans bg-transparent pt-28 pb-20 px-4 sm:px-8 xl:px-16 overflow-hidden selection:bg-primary-500/30"
-      onMouseMove={handleMouseMove}
     >
       <ToastContainer position="bottom-right" theme="dark" toastClassName="backdrop-blur-xl bg-slate-900/80 border border-white/10" />
 
@@ -281,102 +408,18 @@ export default function AllJobs() {
               {filteredJobs.map((job) => {
                 const isApplied = appliedJobIds.includes(job._id);
                 return (
-                  <motion.div 
+                  <JobCard 
                     key={job._id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.3 }}
-                    className="all-job-card relative group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 flex flex-col shadow-xl hover:shadow-2xl shadow-slate-200/50 hover:shadow-slate-300/50 dark:shadow-[0_20px_40px_rgba(0,0,0,0.4)] dark:hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all hover:-translate-y-2 overflow-hidden"
-                  >
-                    {/* Glowing Spotlight Effect */}
-                    <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
-                      style={{ background: `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(59, 130, 246, 0.15), transparent 40%)` }}
-                    />
-                    
-                    <div className="flex justify-between items-start mb-6 relative z-10">
-                      <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center p-2 shadow-inner">
-                        {job.companyLogo ? (
-                          <img src={`data:${job.companyLogo.contentType};base64,${job.companyLogo.data}`} alt="logo" className="w-full h-full object-contain" />
-                        ) : (
-                          <FaBuilding className="text-2xl text-slate-300 dark:text-slate-600" />
-                        )}
-                      </div>
-                      <div className="px-4 py-1.5 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 rounded-full text-xs font-black uppercase tracking-widest border border-primary-100 dark:border-primary-500/20">
-                        {job.jobType || 'Full Time'}
-                      </div>
-                    </div>
-
-                    <div className="relative z-10 mb-8 flex-1">
-                      <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight mb-2 tracking-tight group-hover:text-primary-500 transition-colors">{job.title}</h3>
-                      <p className="text-lg font-bold text-slate-500 dark:text-slate-400 mb-4">{job.company}</p>
-                      
-                      <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 rounded-lg text-sm font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
-                          <FaMapMarkerAlt className="text-slate-400" /> {job.location || 'Remote'}
-                        </span>
-                        <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm font-bold flex items-center gap-1.5 border border-emerald-100 dark:border-emerald-500/20">
-                          <FaMoneyBillWave className="text-emerald-500" /> ₹{job.salary || 'Competitive'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApply(job._id)}
-                        disabled={isApplied}
-                        className={`relative z-10 flex-1 py-4 rounded-xl font-bold text-sm transition-all duration-300 ${
-                          isApplied 
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700' 
-                            : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-primary-600 dark:hover:bg-primary-500 hover:text-white shadow-lg shadow-slate-900/20 dark:shadow-white/10 hover:shadow-primary-500/30 hover:-translate-y-1'
-                        }`}
-                      >
-                        {isApplied ? 'Application Sent' : 'Apply Now'}
-                      </button>
-                      {isApplied ? (
-                        <button
-                          onClick={() => handleGeneratePrep(job)}
-                          disabled={generatingPrepId === job._id}
-                          className="relative z-10 px-5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl font-bold flex items-center justify-center transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-emerald-500/30 disabled:opacity-70 disabled:cursor-wait group"
-                          title="Generate Interview Prep via AI"
-                        >
-                          {generatingPrepId === job._id ? (
-                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                          ) : (
-                            <FaBriefcase className="text-xl group-hover:-translate-y-1 transition-transform" />
-                          )}
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleGeneratePitch(job)}
-                            disabled={generatingPitchId === job._id}
-                            className="relative z-10 px-5 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white rounded-xl font-bold flex items-center justify-center transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-indigo-500/30 disabled:opacity-70 disabled:cursor-wait group"
-                            title="Generate Custom Pitch via AI"
-                          >
-                            {generatingPitchId === job._id ? (
-                              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                            ) : (
-                              <FaStar className="text-xl group-hover:rotate-12 transition-transform" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleGenerateCL(job)}
-                            disabled={generatingClId === job._id}
-                            className="relative z-10 px-5 bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white rounded-xl font-bold flex items-center justify-center transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-pink-500/30 disabled:opacity-70 disabled:cursor-wait group"
-                            title="Generate Cover Letter via AI"
-                          >
-                            {generatingClId === job._id ? (
-                              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                            ) : (
-                              <FaBriefcase className="text-xl group-hover:-translate-y-1 transition-transform" />
-                            )}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </motion.div>
+                    job={job}
+                    isApplied={isApplied}
+                    handleApply={handleApply}
+                    handleGeneratePrep={handleGeneratePrep}
+                    handleGeneratePitch={handleGeneratePitch}
+                    handleGenerateCL={handleGenerateCL}
+                    generatingPrepId={generatingPrepId}
+                    generatingPitchId={generatingPitchId}
+                    generatingClId={generatingClId}
+                  />
                 );
               })}
             </AnimatePresence>

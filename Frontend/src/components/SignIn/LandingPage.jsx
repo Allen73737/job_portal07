@@ -39,16 +39,34 @@ const MagneticJellyButton = memo(function MagneticJellyButton({ children, classN
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const ref = useRef(null);
+  const rectRef = useRef(null);
+
+  const handleMouseEnter = useCallback(() => {
+    setIsHovered(true);
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    onMouseEnter?.();
+  }, [onMouseEnter]);
 
   const handleMouse = useCallback((e) => {
+    if (!rectRef.current && ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    if (!rectRef.current) return;
     const { clientX, clientY } = e;
-    const { height, width, left, top } = ref.current.getBoundingClientRect();
+    const { height, width, left, top } = rectRef.current;
     const middleX = clientX - (left + width / 2);
     const middleY = clientY - (top + height / 2);
     setPosition({ x: middleX * 0.3, y: middleY * 0.3 });
   }, []);
 
-  const reset = useCallback(() => setPosition({ x: 0, y: 0 }), []);
+  const reset = useCallback(() => {
+    setPosition({ x: 0, y: 0 });
+    setIsHovered(false);
+    rectRef.current = null;
+    onMouseLeave?.();
+  }, [onMouseLeave]);
 
   return (
     <motion.button
@@ -56,8 +74,8 @@ const MagneticJellyButton = memo(function MagneticJellyButton({ children, classN
       className={`${className} relative z-[100]`}
       onClick={onClick}
       onMouseMove={handleMouse}
-      onMouseEnter={() => { setIsHovered(true); onMouseEnter?.(); }}
-      onMouseLeave={() => { reset(); setIsHovered(false); onMouseLeave?.(); }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={reset}
       animate={{ 
         x: position.x, 
         y: position.y,
@@ -94,21 +112,39 @@ function SpotlightCard({ children, className }) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [opacity, setOpacity] = useState(0);
+  const cardRef = useRef(null);
+  const rectRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    setOpacity(1);
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
 
   const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    if (!rectRef.current) return;
+    mouseX.set(e.clientX - rectRef.current.left);
+    mouseY.set(e.clientY - rectRef.current.top);
   };
-  
+
+  const handleMouseLeave = () => {
+    setOpacity(0);
+    rectRef.current = null;
+  };
+
   const background = useMotionTemplate`radial-gradient(400px circle at ${mouseX}px ${mouseY}px, rgba(37, 99, 235, 0.15), transparent 40%)`;
 
   return (
     <div
+      ref={cardRef}
       className={`relative overflow-hidden ${className}`}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setOpacity(1)}
-      onMouseLeave={() => setOpacity(0)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <motion.div
         className="pointer-events-none absolute -inset-px opacity-0 transition duration-500 z-50"
@@ -128,14 +164,27 @@ function UltimatePremiumCTA({ text, to, icon: Icon, primary = false }) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const buttonRef = useRef(null);
+  const rectRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (buttonRef.current) {
+      rectRef.current = buttonRef.current.getBoundingClientRect();
+    }
+  };
 
   const handleMouseMove = (e) => {
-    if (!buttonRef.current) return;
-    const rect = buttonRef.current.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
+    if (!rectRef.current && buttonRef.current) {
+      rectRef.current = buttonRef.current.getBoundingClientRect();
+    }
+    if (!rectRef.current) return;
+    mouseX.set(e.clientX - rectRef.current.left);
+    mouseY.set(e.clientY - rectRef.current.top);
   };
-  
+
+  const handleMouseLeave = () => {
+    rectRef.current = null;
+  };
+
   const background = useMotionTemplate`radial-gradient(150px circle at ${mouseX}px ${mouseY}px, ${primary ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.4)'}, transparent 100%)`;
 
   return (
@@ -148,7 +197,9 @@ function UltimatePremiumCTA({ text, to, icon: Icon, primary = false }) {
       {/* Moving Gradient Border Wrapper */}
       <div 
         ref={buttonRef}
+        onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         className={`relative p-[3px] rounded-full overflow-hidden transition-transform duration-300 hover:scale-[1.04] shadow-2xl ${primary ? 'shadow-blue-500/50' : 'shadow-slate-500/20'}`}
       >
         {/* Static Optimized Gradient for the Border */}
@@ -184,15 +235,28 @@ function UltimatePremiumSearchBar({ placeholder, buttonText, primary = true, cla
   const mouseY = useMotionValue(0);
   const [query, setQuery] = useState("");
   const searchRef = useRef(null);
+  const rectRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleMouseMove = (e) => {
-    if (!searchRef.current) return;
-    const rect = searchRef.current.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
+  const handleMouseEnter = () => {
+    if (searchRef.current) {
+      rectRef.current = searchRef.current.getBoundingClientRect();
+    }
   };
-  
+
+  const handleMouseMove = (e) => {
+    if (!rectRef.current && searchRef.current) {
+      rectRef.current = searchRef.current.getBoundingClientRect();
+    }
+    if (!rectRef.current) return;
+    mouseX.set(e.clientX - rectRef.current.left);
+    mouseY.set(e.clientY - rectRef.current.top);
+  };
+
+  const handleMouseLeave = () => {
+    rectRef.current = null;
+  };
+
   const background = useMotionTemplate`radial-gradient(200px circle at ${mouseX}px ${mouseY}px, ${primary ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.4)'}, transparent 100%)`;
 
   const handleSearch = () => {
@@ -219,7 +283,9 @@ function UltimatePremiumSearchBar({ placeholder, buttonText, primary = true, cla
       {/* Moving Gradient Border Wrapper */}
       <div 
         ref={searchRef}
+        onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         className={`relative p-[3px] rounded-full overflow-hidden transition-transform duration-300 shadow-2xl ${primary ? 'shadow-blue-500/50' : 'shadow-slate-500/20'}`}
       >
         {/* Static Optimized Gradient for the Border */}
@@ -288,7 +354,7 @@ function ShatterText({ text, className }) {
     <motion.span 
       className={className}
       initial="hidden"
-      whileInView="visible"
+      animate="visible"
       viewport={{ once: true }}
       variants={{
         visible: { transition: { staggerChildren: 0.02 } }
@@ -473,24 +539,38 @@ function PathCard({
   const mouseY = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
+  const rectRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
 
   const handleMouseMove = (e) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    if (!rectRef.current) return;
+    const x = (e.clientX - rectRef.current.left) / rectRef.current.width - 0.5;
+    const y = (e.clientY - rectRef.current.top) / rectRef.current.height - 0.5;
     mouseX.set(x);
     mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    mouseX.set(0);
+    mouseY.set(0);
+    rectRef.current = null;
   };
 
   return (
     <motion.div
       ref={cardRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        setMousePosition({ x: 0, y: 0 });
-      }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
       animate={{ flex: isHovered ? 1.4 : 1 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
@@ -544,12 +624,13 @@ function PathCard({
           }}
           style={{
             x: useTransform(mouseX, x => x * badge.parallax),
+            opacity: isHovered ? 1 : 0,
+            transition: 'opacity 0.5s ease-in-out'
           }}
           transition={{
             y: { duration: 3 + i, repeat: Infinity, ease: "easeInOut" },
           }}
           className={`absolute z-10 glass-card px-4 py-3 rounded-2xl flex items-center space-x-3 shadow-xl backdrop-blur-md bg-white/10 dark:bg-black/20 border border-white/10 ${badge.position}`}
-          style={{ opacity: isHovered ? 1 : 0, transition: 'opacity 0.5s ease-in-out' }}
         >
           <div className={`p-2 rounded-lg ${badge.bgClass}`}>
             <badge.icon className={`text-lg ${badge.textClass}`} />
@@ -883,23 +964,39 @@ function ScrollRevealText() {
 // 3. Haptic 3D Testimonial Inspection
 function HapticTestimonialCard({ testimonial }) {
   const ref = useRef(null);
+  const rectRef = useRef(null);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
 
+  const handleMouseEnter = () => {
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
+    if (!rectRef.current && ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    if (!rectRef.current) return;
+    const x = e.clientX - rectRef.current.left - rectRef.current.width / 2;
+    const y = e.clientY - rectRef.current.top - rectRef.current.height / 2;
     setRotateX(-y * 0.05);
     setRotateY(x * 0.05);
+  };
+
+  const handleMouseLeave = () => {
+    setRotateX(0);
+    setRotateY(0);
+    rectRef.current = null;
   };
 
   return (
     <motion.div 
       ref={ref}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => { setRotateX(0); setRotateY(0); }}
+      onMouseLeave={handleMouseLeave}
       animate={{ rotateX, rotateY }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       style={{ transformStyle: "preserve-3d", perspective: 1000 }}
@@ -981,8 +1078,8 @@ function PremiumHeroCarousel() {
             style={{ zIndex, transformStyle: "preserve-3d" }}
           >
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent z-10" />
-            <img src={src} alt="Hero" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-primary-500/10 mix-blend-overlay z-10" />
+            <img src={src} alt="Hero" className="w-full h-full object-cover" fetchPriority={i === 0 ? "high" : "auto"} loading={i === 0 ? "eager" : "lazy"} />
+            <div className="absolute inset-0 bg-primary-500/10 mix-blend-overlay z-10 pointer-events-none" />
             
             {isCenter && (
               <motion.div 
@@ -1144,11 +1241,47 @@ function DynamicStatsSection() {
   );
 }
 
-export default function HomePage() {
-  const choosePathRef = useRef(null);
+function RippleOverlay() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.15),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.1),transparent_60%)] pointer-events-none will-change-transform transform-gpu" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.15),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.1),transparent_60%)] pointer-events-none will-change-transform transform-gpu" />
+    </div>
+  );
+}
+
+function InteractiveSearchBar() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSearchHovered, setIsSearchHovered] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+
+  return (
+    <motion.div className="-mt-3" style={{ zIndex: (isSearchFocused || isSearchHovered) ? 1000 : 1, position: 'relative' }}>
+      <motion.div 
+        onMouseEnter={() => setIsSearchHovered(true)}
+        onMouseLeave={() => setIsSearchHovered(false)}
+        animate={{ scale: isSearchFocused ? 1.35 : (isSearchHovered ? 1.25 : 1) }}
+        style={{ transformOrigin: "left center" }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`transition-shadow duration-500 rounded-2xl ${(isSearchFocused || isSearchHovered) ? 'shadow-[0_0_80px_rgba(37,99,235,0.4)] dark:shadow-[0_0_80px_rgba(37,99,235,0.6)]' : ''}`}
+      >
+        <div className="w-full" onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)}>
+          <UltimatePremiumSearchBar placeholder="Job title, keywords, or company..." buttonText="Search" primary={true} />
+        </div>
+        <div className="mt-4 flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
+          <span className="text-slate-400 dark:text-slate-500">Popular:</span>
+          {['Software Engineer', 'Product Manager', 'Remote', 'Design'].map((tag) => (
+            <span key={tag} className="hover:text-primary-600 dark:hover:text-primary-400 cursor-pointer transition-colors">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+export default function HomePage() {
+  const choosePathRef = useRef(null);
 
   // 2. Scroll-Velocity Element Skewing
   const { scrollY, scrollYProgress } = useScroll();
@@ -1165,15 +1298,6 @@ export default function HomePage() {
   const explodeScale = useTransform(scrollY, [0, 500], [1, 1.5]);
   const explodeOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const explodeY = useTransform(scrollY, [0, 500], [0, -100]);
-
-  // 5. Water-Ripple Click Interactions
-  const [ripples, setRipples] = useState([]);
-  const handleHeroClick = useCallback((e) => {
-    if (e.target.closest('button') || e.target.closest('input')) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newRipple = { x: e.clientX - rect.left, y: e.clientY - rect.top, id: Date.now() };
-    setRipples(prev => [...prev.slice(-3), newRipple]); // Keep max 4 ripples to prevent memory buildup
-  }, []);
 
   // 2. Scroll-Docking Search Bar
   const searchDockY = useTransform(scrollY, [600, 800], ["-100%", "0%"]);
@@ -1224,7 +1348,6 @@ export default function HomePage() {
       <motion.section 
         id="hero"
         style={{ scale: heroScale, opacity: heroOpacity, transformOrigin: "center top" }}
-        onClick={handleHeroClick}
         className="relative flex-grow pt-12 lg:pt-20 pb-16 min-h-[calc(100vh-6rem)] cursor-pointer overflow-visible z-10"
       >
         {/* Architectural Edge Accents - Left */}
@@ -1232,9 +1355,9 @@ export default function HomePage() {
           <motion.div 
             animate={{ y: ["-20vh", "120vh"] }} 
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute top-0 left-1/2 w-px h-32 bg-gradient-to-b from-transparent via-slate-400/50 dark:via-slate-500/50 to-transparent -translate-x-1/2"
+            className="absolute top-0 left-1/2 w-px h-32 bg-gradient-to-b from-transparent via-slate-400/50 dark:via-slate-500/50 to-transparent -translate-x-1/2 will-change-transform transform-gpu"
           />
-          <div className="absolute top-[20%] -left-[10vw] w-[20vw] h-[40vh] bg-slate-200/50 dark:bg-slate-800/30 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-overlay" />
+          <div className="absolute top-[20%] -left-[10vw] w-[20vw] h-[40vh] bg-slate-200/50 dark:bg-slate-800/30 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-overlay will-change-transform transform-gpu" />
         </div>
 
         {/* Architectural Edge Accents - Right */}
@@ -1242,45 +1365,29 @@ export default function HomePage() {
           <motion.div 
             animate={{ y: ["120vh", "-20vh"] }} 
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute top-0 left-1/2 w-px h-48 bg-gradient-to-b from-transparent via-slate-400/40 dark:via-slate-500/40 to-transparent -translate-x-1/2"
+            className="absolute top-0 left-1/2 w-px h-48 bg-gradient-to-b from-transparent via-slate-400/40 dark:via-slate-500/40 to-transparent -translate-x-1/2 will-change-transform transform-gpu"
           />
-          <div className="absolute bottom-[20%] -right-[10vw] w-[25vw] h-[40vh] bg-slate-300/40 dark:bg-slate-700/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-overlay" />
+          <div className="absolute bottom-[20%] -right-[10vw] w-[25vw] h-[40vh] bg-slate-300/40 dark:bg-slate-700/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-overlay will-change-transform transform-gpu" />
         </div>
 
 
 
-        {/* Static Premium Background */}
-        <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.15),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.1),transparent_60%)] pointer-events-none" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.15),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.1),transparent_60%)] pointer-events-none" />
-          <AnimatePresence>
-            {ripples.map(r => (
-              <motion.div 
-                key={r.id} 
-                initial={{ scale: 0, opacity: 0.8, borderWidth: "8px" }} 
-                animate={{ scale: 15, opacity: 0, borderWidth: "1px" }} 
-                exit={{ opacity: 0 }} 
-                transition={{ duration: 1.5, ease: "easeOut" }} 
-                className="absolute w-32 h-32 rounded-full border-blue-400 dark:border-primary-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]" 
-                style={{ left: r.x - 64, top: r.y - 64 }} 
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        {/* Isolated Interactive Ripple Overlay */}
+        <RippleOverlay />
 
         {/* 4. Interactive 3D CSS Scroll Parallax (Optimized to Single CSS Grid) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" style={{ perspective: "1500px" }}>
           <motion.div 
             style={{ rotateX: gridRotateX, z: gridTranslateZ }}
-            className="absolute top-[-50vh] left-[-50vw] w-[200vw] h-[200vh] opacity-10 dark:opacity-20"
+            className="absolute top-[-50vh] left-[-50vw] w-[200vw] h-[200vh] opacity-10 dark:opacity-20 will-change-transform transform-gpu"
           >
-            <div className="w-full h-full border border-slate-500 rounded-2xl bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+            <div className="w-full h-full border border-slate-500 rounded-2xl bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] transform-gpu" />
           </motion.div>
         </div>
         
         {/* Full Bleed Content Container */}
         <motion.div 
-          style={{ opacity: explodeOpacity, scale: explodeScale, y: explodeY }} 
+          style={{ opacity: explodeOpacity, scale: explodeScale, y: explodeY, willChange: "transform, opacity" }} 
           className="relative z-10 w-full px-6 lg:px-16 2xl:px-32 mx-auto flex flex-col justify-center min-h-[calc(100vh-120px)] max-md:min-h-0 max-md:py-20"
         >
           {/* Top Row: Split Layout — Text Left, Visual Right */}
@@ -1290,7 +1397,7 @@ export default function HomePage() {
             <motion.div
               variants={staggerContainer}
               initial="hidden"
-              whileInView="visible"
+              animate="visible"
               viewport={{ once: false, amount: 0.1 }}
               className="flex-1 space-y-6 text-center lg:text-left max-w-3xl 2xl:max-w-4xl max-md:mx-auto max-md:flex max-md:flex-col max-md:items-center"
             >
@@ -1340,28 +1447,9 @@ export default function HomePage() {
                 Connect with top employers worldwide and discover opportunities that match your skills, passion, and career goals.
               </motion.p>
               
-              {/* Search Bar — Full Width */}
-              <motion.div variants={fadeInUp} className="-mt-3" style={{ zIndex: (isSearchFocused || isSearchHovered) ? 1000 : 1, position: 'relative' }}>
-                <motion.div 
-                  onMouseEnter={() => setIsSearchHovered(true)}
-                  onMouseLeave={() => setIsSearchHovered(false)}
-                  animate={{ scale: isSearchFocused ? 1.35 : (isSearchHovered ? 1.25 : 1) }}
-                  style={{ transformOrigin: "left center" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`transition-shadow duration-500 rounded-2xl ${(isSearchFocused || isSearchHovered) ? 'shadow-[0_0_80px_rgba(37,99,235,0.4)] dark:shadow-[0_0_80px_rgba(37,99,235,0.6)]' : ''}`}
-                >
-                <div className="w-full" onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)}>
-                  <UltimatePremiumSearchBar placeholder="Job title, keywords, or company..." buttonText="Search" primary={true} />
-                </div>
-                <div className="mt-4 flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                  <span className="text-slate-400 dark:text-slate-500">Popular:</span>
-                  {['Software Engineer', 'Product Manager', 'Remote', 'Design'].map((tag) => (
-                    <span key={tag} className="hover:text-primary-600 dark:hover:text-primary-400 cursor-pointer transition-colors">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                </motion.div>
+              {/* Search Bar — Isolated Component */}
+              <motion.div variants={fadeInUp}>
+                <InteractiveSearchBar />
               </motion.div>
 
               {/* Unmissable Ultra-Premium CTAs */}
@@ -1403,7 +1491,7 @@ export default function HomePage() {
       </motion.section>
 
       {/* 3. Infinite Logo Carousel - Gooey Liquid State */}
-      <div id="brands" ref={carouselRef} className="w-full overflow-hidden py-16 max-md:py-8 bg-transparent relative z-10 perspective-[1000px] max-md:perspective-none">
+      <div id="brands" ref={carouselRef} className="w-full overflow-hidden py-16 max-md:py-8 bg-transparent relative z-10 perspective-[1000px] max-md:perspective-none min-h-[200px]">
         {/* fading edges */}
         <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#e2e8f0] dark:from-[#020617] to-transparent z-10 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#e2e8f0] dark:from-[#020617] to-transparent z-10 pointer-events-none" />
@@ -1418,7 +1506,6 @@ export default function HomePage() {
             rotateZ: carouselRotateZ, 
             transformStyle: "preserve-3d"
           }}
-          whileHover={{ rotateX: "0deg", rotateZ: "0deg", scale: 1.1, transition: { duration: 0.5 } }}
         >
           {["Google", "Microsoft", "Meta", "Netflix", "Amazon", "Apple", "Spotify", "Stripe", "Airbnb", "Uber", "Google", "Microsoft", "Meta", "Netflix", "Amazon", "Apple", "Spotify", "Stripe", "Airbnb", "Uber"].map((logo, i) => (
             <motion.div 
@@ -1427,6 +1514,8 @@ export default function HomePage() {
               dragElastic={0.2}
               key={i} 
               className="mx-4 max-md:mx-0 max-md:px-6 max-md:py-4 px-10 py-6 bg-primary-600 dark:bg-primary-500 text-white rounded-[3rem] max-md:rounded-[1.5rem] flex items-center justify-center relative group cursor-grab active:cursor-grabbing"
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ rotateX: "0deg", rotateZ: "0deg", scale: 1.1, transition: { duration: 0.5 } }}
             >
               <span className="text-3xl font-black uppercase tracking-widest drop-shadow-md">{logo}</span>
             </motion.div>
